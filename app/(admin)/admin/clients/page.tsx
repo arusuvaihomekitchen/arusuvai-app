@@ -188,14 +188,33 @@ export default function AdminClientsPage() {
     } finally { setSaving(false); }
   }
 
-  const filtered = clients.filter((c) =>
-    c.is_active && (
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.location?.toLowerCase().includes(search.toLowerCase())
-    )
-  );
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active_sub' | 'expired_sub' | 'deactivated'>('all');
 
-  const activeCount = clients.filter((c) => c.is_active && getSubStatus(c) === 'active').length;
+  const filtered = clients.filter((c) => {
+    const matchesSearch =
+      c.name.toLowerCase().includes(search.toLowerCase()) ||
+      c.location?.toLowerCase().includes(search.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    const subStatus = getSubStatus(c);
+
+    if (statusFilter === 'active_sub') {
+      return c.is_active && subStatus === 'active';
+    } else if (statusFilter === 'expired_sub') {
+      return c.is_active && (subStatus === 'expired' || subStatus === 'not_started');
+    } else if (statusFilter === 'deactivated') {
+      return !c.is_active;
+    } else {
+      // 'all' - Show all active profiles
+      return c.is_active;
+    }
+  });
+
+  const allActiveCount = clients.filter((c) => c.is_active).length;
+  const activeSubCount = clients.filter((c) => c.is_active && getSubStatus(c) === 'active').length;
+  const expiredSubCount = clients.filter((c) => c.is_active && (getSubStatus(c) === 'expired' || getSubStatus(c) === 'not_started')).length;
+  const deactivatedCount = clients.filter((c) => !c.is_active).length;
 
   return (
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
@@ -203,7 +222,7 @@ export default function AdminClientsPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 900, color: 'var(--color-text)', fontFamily: 'Georgia, serif', margin: 0 }}>Clients</h1>
-          <p style={{ fontSize: 12, color: 'var(--color-text-light)', margin: '2px 0 0' }}>{activeCount} active subscribers</p>
+          <p style={{ fontSize: 12, color: 'var(--color-text-light)', margin: '2px 0 0' }}>{activeSubCount} active / {allActiveCount} total active</p>
         </div>
         <Button onClick={() => setShowAddForm((p) => !p)}>
           {showAddForm ? '✕ Cancel' : '+ Add Client'}
@@ -222,7 +241,7 @@ export default function AdminClientsPage() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             {[
               { label: 'Full Name *', key: 'name', placeholder: 'e.g. Ramesh Kumar' },
-              { label: 'Phone Number *', key: 'phone_number', placeholder: 'e.g. 9092724170' },
+              { label: 'Phone Number *', key: 'phone_number', placeholder: 'e.g. 8667670695' },
               { label: 'Location / Area', key: 'location', placeholder: 'e.g. Anna Nagar' },
               { label: 'Password *', key: 'password', placeholder: 'Initial password' },
               { label: 'Delivery Note', key: 'delivery_note', placeholder: 'e.g. Gate 2, ring bell' },
@@ -407,6 +426,43 @@ export default function AdminClientsPage() {
         </div>
       </div>
 
+      {/* Filter Tabs */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, overflowX: 'auto', paddingBottom: 6 }}>
+        {[
+          { id: 'all', label: 'All Active Profiles', count: allActiveCount, icon: '👥' },
+          { id: 'active_sub', label: 'Active Subscriptions', count: activeSubCount, icon: '🟢' },
+          { id: 'expired_sub', label: 'Expired/No Sub', count: expiredSubCount, icon: '🔴' },
+          { id: 'deactivated', label: 'Deactivated', count: deactivatedCount, icon: '🚫' },
+        ].map((tab) => {
+          const isSel = statusFilter === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setStatusFilter(tab.id as any)}
+              style={{
+                padding: '8px 14px',
+                background: isSel ? 'var(--color-primary)' : 'white',
+                color: isSel ? 'white' : 'var(--color-text-muted)',
+                border: `1.5px solid ${isSel ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                borderRadius: 10,
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                fontFamily: 'Outfit, sans-serif',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span>{tab.icon}</span>
+              {tab.label} ({tab.count})
+            </button>
+          );
+        })}
+      </div>
+
       {/* Client cards / List view */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: 40, color: 'var(--color-text-light)' }}>Loading…</div>
@@ -421,6 +477,7 @@ export default function AdminClientsPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 700 }}>
               <thead>
                 <tr style={{ background: 'var(--color-bg)', borderBottom: '1.5px solid var(--color-border)' }}>
+                  <th style={{ ...thStyle, width: 50 }}>S.No</th>
                   <th style={thStyle}>Client Details</th>
                   <th style={thStyle}>Location</th>
                   <th style={thStyle}>Plan & Meals</th>
@@ -430,7 +487,7 @@ export default function AdminClientsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((c) => {
+                {filtered.map((c, index) => {
                   const status = getSubStatus(c);
                   const rem = remainingDays(c);
                   const isExpired = status === 'expired';
@@ -442,6 +499,9 @@ export default function AdminClientsPage() {
 
                   return (
                     <tr key={c.id} style={{ borderBottom: '1px solid var(--color-border)', transition: 'background 0.15s ease' }} className="table-row-hover">
+                      <td style={{ ...tdStyle, fontWeight: 700, color: 'var(--color-text-muted)', fontSize: 13, width: 50 }}>
+                        {index + 1}
+                      </td>
                       <td style={tdStyle}>
                         <div style={{ fontWeight: 800, color: 'var(--color-text)', fontSize: 14 }}>{c.name}</div>
                         <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 2 }}>📞 {c.phone_number || '—'}</div>

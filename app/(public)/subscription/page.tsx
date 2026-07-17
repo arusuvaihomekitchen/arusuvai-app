@@ -258,7 +258,7 @@ export default async function SubscriptionPage() {
               Not sure which plan to choose? Message us on WhatsApp — we&apos;ll help you pick the right one and get you started today.
             </p>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <a href="https://wa.me/919092724170" target="_blank" rel="noopener noreferrer" style={{
+              <a href="https://wa.me/918667670695" target="_blank" rel="noopener noreferrer" style={{
                 padding: '13px 28px', background: '#2C5E2E', color: '#fff',
                 borderRadius: 10, fontSize: 13.5, fontWeight: 800, textDecoration: 'none',
                 display: 'flex', alignItems: 'center', gap: 8,

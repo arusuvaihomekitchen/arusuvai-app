@@ -12,7 +12,7 @@ const INFO_ITEMS = [
     icon: '💬',
     title: 'WhatsApp (Fastest)',
     desc: 'Message us to subscribe, make changes, or ask anything. We reply quickly.',
-    link: { label: 'Chat on WhatsApp', href: 'https://wa.me/919092724170' },
+    link: { label: 'Chat on WhatsApp', href: 'https://wa.me/918667670695' },
     color: '#25D366',
     bg: '#E8F8EE',
     border: '#B4DFC4',
@@ -297,7 +297,7 @@ export default function ContactPage() {
                 Tap below to open WhatsApp and start your subscription today.
               </p>
               <a
-                href="https://wa.me/919092724170"
+                href="https://wa.me/918667670695"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="cp-wa-btn"

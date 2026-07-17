@@ -68,7 +68,7 @@ export default function PublicFooter() {
             <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, margin: '0 0 16px' }}>
               Have questions? We reply quickly on WhatsApp.
             </p>
-            <a href="https://wa.me/919092724170" target="_blank" rel="noopener noreferrer" style={{
+            <a href="https://wa.me/918667670695" target="_blank" rel="noopener noreferrer" style={{
               display: 'inline-flex',
               padding: '10px 18px',
               background: 'rgba(255,255,255,0.1)',

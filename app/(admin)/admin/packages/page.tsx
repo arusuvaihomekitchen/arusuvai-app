@@ -26,7 +26,7 @@ export default function SubscriptionPackagesPage() {
     price: '',
     is_public: false,
     features: '',
-    whatsapp_number: '919092724170',
+    whatsapp_number: '918667670695',
     sort_order: '0',
   });
 
@@ -57,7 +57,7 @@ export default function SubscriptionPackagesPage() {
       price: String(pkg.price),
       is_public: pkg.is_public || false,
       features: Array.isArray(pkg.features) ? pkg.features.join('\n') : '',
-      whatsapp_number: pkg.whatsapp_number || '919092724170',
+      whatsapp_number: pkg.whatsapp_number || '918667670695',
       sort_order: String(pkg.sort_order || 0),
     });
   };
@@ -74,7 +74,7 @@ export default function SubscriptionPackagesPage() {
       price: '',
       is_public: false,
       features: '',
-      whatsapp_number: '919092724170',
+      whatsapp_number: '918667670695',
       sort_order: '0',
     });
   };
@@ -127,7 +127,7 @@ export default function SubscriptionPackagesPage() {
           price: '',
           is_public: false,
           features: '',
-          whatsapp_number: '919092724170',
+          whatsapp_number: '918667670695',
           sort_order: '0',
         });
         invalidateCache('/api/admin/packages');

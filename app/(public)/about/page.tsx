@@ -249,9 +249,11 @@ export default function AboutPage() {
         <section className="ap-hero">
           <div className="ap-kicker">Our Story</div>
           <h1 className="ap-h1">Six Tastes.<br /><span>One Kitchen.</span></h1>
-          <p className="ap-lead">
-            <em>Arusuvai</em> means &ldquo;six tastes&rdquo; in Tamil. We are a home kitchen that believes the best food is made with fresh ingredients, loving hands, and no shortcuts.
-          </p>
+          <div className="ap-lead" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <p>Arusuvai - The Home Kitchen started with a simple love for healthy, homemade food and a dream to share the warmth of home-cooked flavours with every family.</p>
+            <p>Every recipe is made with care, using quality ingredients and a personal touch — just like we prepare food for our own loved ones.</p>
+            <p style={{ fontWeight: 700, color: '#2C5E2E' }}>Arusuvai - The Home Kitchen — Homemade with Love, Nourishing Every Heart.</p>
+          </div>
         </section>
 
         <div className="ap-divider" />
@@ -262,16 +264,16 @@ export default function AboutPage() {
             <img src="/images/Landing Page.png" alt="Arusuvai tiffin being packed fresh" />
           </div>
           <div className="ap-story-text">
-            <div className="ap-sec-kicker">Who We Are</div>
+            <div className="ap-sec-kicker">What We Do</div>
             <h2 className="ap-h2">Food That<br />Feels Like Home</h2>
             <p className="ap-p">
-              Arusuvai was started by a family who believed that working people deserve a real home-cooked meal every day — not a microwave dinner, not a canteen tray, but something made with care.
+              Home is where the best food is made. At Arusuvai – The Home Kitchen, we bring you the warmth of homemade meals prepared with fresh ingredients, traditional flavours, and heartfelt love—because every bite should feel like home. ❤️
             </p>
             <p className="ap-p">
-              We wake up early every morning, cook everything fresh, pack it in steel tiffin carriers, and deliver it to your door. No preservatives. No reheating. No compromise.
+              Every morning, we cook fresh, pack our meals in traditional steel tiffin carriers, and deliver them straight to your doorstep. No preservatives. No shortcuts. Just honest, home-cooked goodness made with care.
             </p>
             <p className="ap-p" style={{ marginBottom: 0 }}>
-              We serve vegetarian and non-vegetarian meals Monday to Saturday — rain or shine.
+              Serving delicious vegetarian and non-vegetarian meals Monday to Saturday—rain or shine, from our kitchen to your home. ❤️
             </p>
           </div>
         </section>

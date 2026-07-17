@@ -81,7 +81,7 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await req.json();
-    const { name, phone_number, location, password, delivery_note, sub_amount, start_date, end_date, subscribe_lunch, subscribe_dinner, subscribe_breakfast } = body;
+    const { name, phone_number, location, password, delivery_note, is_active, sub_amount, start_date, end_date, subscribe_lunch, subscribe_dinner, subscribe_breakfast } = body;
 
     const db = await pool.connect();
     try {
@@ -109,6 +109,10 @@ export async function PATCH(
       if (delivery_note !== undefined) {
         updates.push(`delivery_note = $${placeholderIdx++}`);
         values.push(delivery_note);
+      }
+      if (is_active !== undefined) {
+        updates.push(`is_active = $${placeholderIdx++}`);
+        values.push(!!is_active);
       }
       if (password) {
         const passwordHash = await bcrypt.hash(password, 10);

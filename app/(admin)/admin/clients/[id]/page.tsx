@@ -18,7 +18,7 @@ interface ClientDetailProps {
 function calculateEndDate(startDateStr: string, serviceDays: number): string {
   if (serviceDays <= 0) return startDateStr;
   const d = new Date(startDateStr + 'T00:00:00');
-  let current = new Date(d);
+  const current = new Date(d);
   let serviceCount = 0;
   while (serviceCount < serviceDays) {
     if (current.getDay() !== 0) { // Not Sunday
@@ -57,6 +57,7 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
 
   const [editForm, setEditForm] = useState({
     name: '', phone_number: '', location: '', password: '', delivery_note: '',
+    is_active: true,
     sub_amount: '', start_date: '', end_date: '',
     subscribe_breakfast: false, subscribe_lunch: true, subscribe_dinner: true,
   });
@@ -141,6 +142,7 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
       location: c.location || '',
       password: '',
       delivery_note: c.delivery_note || '',
+      is_active: c.is_active !== false,
       sub_amount: s?.amount !== undefined ? String(s.amount) : '',
       start_date: s?.start_date ? s.start_date.slice(0, 10) : '',
       end_date: s?.end_date ? s.end_date.slice(0, 10) : '',
@@ -605,6 +607,18 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
               />
             </div>
           ))}
+        </div>
+
+        {/* Client Profile Status Checkbox */}
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: 'var(--color-text)', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={editForm.is_active}
+              onChange={(e) => setEditForm((f) => ({ ...f, is_active: e.target.checked }))}
+            />
+            Active Client Profile (uncheck to deactivate client)
+          </label>
         </div>
 
         {/* Subscription section */}
