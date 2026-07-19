@@ -155,7 +155,7 @@ export default function AdminDeliveryPersonsPage() {
             <div key={p.id} style={{
               background: 'white', border: '1.5px solid var(--color-border)',
               borderRadius: 14, padding: '14px 16px',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12,
               transition: 'box-shadow 0.15s ease',
             }}
               onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)')}
@@ -178,7 +178,7 @@ export default function AdminDeliveryPersonsPage() {
                   </div>
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <div style={{ textAlign: 'right', marginRight: 6 }}>
                   <div style={{ fontFamily: 'Georgia, serif', fontSize: 22, fontWeight: 900, color: 'var(--color-primary)' }}>
                     {p.delivered_today ?? 0}
