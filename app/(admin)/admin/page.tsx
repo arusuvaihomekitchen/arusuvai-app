@@ -32,6 +32,7 @@ export default function AdminTodayPage() {
   const [assignPerson, setAssignPerson] = useState('');
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [skippingAll, setSkippingAll] = useState(false);
   const [confirmSkipDelivery, setConfirmSkipDelivery] = useState<DailyDelivery | null>(null);
 
   const loadDeliveries = useCallback((bypassCache = false) => {
@@ -67,6 +68,20 @@ export default function AdminTodayPage() {
     invalidateCache('/api/admin/today');
     loadDeliveries(true);
     setGenerating(false);
+  }
+
+  async function skipAll() {
+    if (!confirm('Are you sure you want to skip all active deliveries for ' + mealTab + ' on this date? (e.g. for a holiday)')) return;
+    setSkippingAll(true);
+    await fetch('/api/admin/skip-all', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date, meal_type: mealTab }),
+    });
+    invalidateCache('/api/admin/today');
+    invalidateCache('/api/admin/clients');
+    loadDeliveries(true);
+    setSkippingAll(false);
   }
 
   async function approveSkip(skipId: string) {
@@ -200,7 +215,10 @@ export default function AdminTodayPage() {
             <span style={{ fontWeight: 900, fontSize: 14 }}>{p.value}</span>
           </div>
         ))}
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <Button size="sm" variant="ghost" onClick={skipAll} loading={skippingAll} style={{ color: '#DC2626', borderColor: '#FECACA', background: '#FEF2F2' }}>
+            🚫 Skip All (Holiday)
+          </Button>
           <Button size="sm" variant="ghost" onClick={generateToday} loading={generating}>
             ⟳ Generate List
           </Button>
