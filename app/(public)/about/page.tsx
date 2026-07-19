@@ -3,8 +3,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'About Us | Arusuvai Home Kitchen',
-  description: 'Learn about Arusuvai Home Kitchen — our story, our values, and why we believe home-cooked food is the best food.',
+  title: 'About Us | Arusuvai - The Home Kitchen',
+  description: 'Learn about Arusuvai - The Home Kitchen — our story, our values, and why we believe home-cooked food is the best food.',
 };
 
 const VALUES = [

@@ -6,7 +6,7 @@ import PublicFooter from '@/components/public/PublicFooter';
 
 export const metadata: Metadata = {
   title: 'Arusuvai — The Home Kitchen | Homemade Meal Delivery',
-  description: 'Arusuvai Home Kitchen delivers freshly prepared home-cooked South Indian meals to your doorstep every day, Monday to Saturday.',
+  description: 'Arusuvai - The Home Kitchen delivers freshly prepared home-cooked South Indian meals to your doorstep every day, Monday to Saturday.',
 };
 
 export const revalidate = 60;
@@ -433,7 +433,7 @@ export default function LandingPage() {
         {/* ── HERO ── */}
         <section className="hero">
           <div className="hero-left">
-            <div className="hero-kicker">Arusuvai Home Kitchen</div>
+            <div className="hero-kicker">Arusuvai - The Home Kitchen</div>
             <h1 className="hero-h1">
               Food That<br />Feels Like<br /><span>Home</span>
             </h1>

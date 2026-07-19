@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Our Menu | Arusuvai Home Kitchen',
+  title: 'Our Menu | Arusuvai - The Home Kitchen',
   description: 'See our weekly menus. Fresh, home-cooked South Indian meals delivered daily.',
 };
 

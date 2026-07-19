@@ -215,7 +215,7 @@ export default function PublicNavbar() {
             </div>
             <div>
               <div style={{ fontSize: 18, fontWeight: 800, color: '#1A2E1A', lineHeight: 1.1, letterSpacing: '-0.01em' }}>Arusuvai</div>
-              <div style={{ fontSize: 8.5, fontWeight: 700, color: '#E8A020', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Home Kitchen</div>
+              <div style={{ fontSize: 8.5, fontWeight: 700, color: '#E8A020', textTransform: 'uppercase', letterSpacing: '0.15em' }}>The Home Kitchen</div>
             </div>
           </Link>
 

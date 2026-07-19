@@ -32,7 +32,7 @@ export default function PublicFooter() {
               </div>
               <div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: '#fff', lineHeight: 1, letterSpacing: '-0.02em' }}>Arusuvai</div>
-                <div style={{ fontSize: 8, fontWeight: 700, color: '#F5A623', textTransform: 'uppercase', letterSpacing: '0.14em', marginTop: 2 }}>Home Kitchen</div>
+                <div style={{ fontSize: 8, fontWeight: 700, color: '#F5A623', textTransform: 'uppercase', letterSpacing: '0.14em', marginTop: 2 }}>The Home Kitchen</div>
               </div>
             </div>
             <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, margin: 0, maxWidth: 280 }}>
@@ -95,7 +95,7 @@ export default function PublicFooter() {
           justifyContent: 'center',
         }}>
           <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', margin: 0, fontWeight: 500 }}>
-            © {new Date().getFullYear()} Arusuvai Home Kitchen. All rights reserved.
+            © {new Date().getFullYear()} Arusuvai - The Home Kitchen. All rights reserved.
           </p>
         </div>
       </div>

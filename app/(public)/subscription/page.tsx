@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Subscription Packages | Arusuvai Home Kitchen',
+  title: 'Subscription Packages | Arusuvai - The Home Kitchen',
   description: 'Choose your Arusuvai meal subscription. Veg Lunch, Non-Veg Lunch, and Dinner packages. Fresh homemade meals delivered daily.',
 };
 

@@ -3,8 +3,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Contact Us | Arusuvai Home Kitchen',
-  description: 'Get in touch with Arusuvai Home Kitchen. Message us on WhatsApp to subscribe, ask questions, or give feedback.',
+  title: 'Contact Us | Arusuvai - The Home Kitchen',
+  description: 'Get in touch with Arusuvai - The Home Kitchen. Message us on WhatsApp to subscribe, ask questions, or give feedback.',
 };
 
 const INFO_ITEMS = [
