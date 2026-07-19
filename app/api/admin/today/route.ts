@@ -9,6 +9,12 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const date = searchParams.get('date') ?? todayIST();
 
+    const dayOfWeek = new Date(date).getDay();
+    if (dayOfWeek === 0) {
+      // Sunday is a holiday, no deliveries
+      return NextResponse.json<ApiResponse>({ success: true, data: [] });
+    }
+
     const db = await pool.connect();
     try {
       await db.query('BEGIN');

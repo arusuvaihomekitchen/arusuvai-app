@@ -10,6 +10,12 @@ export async function POST(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const today = body.date || searchParams.get('date') || todayIST();
 
+    const dayOfWeek = new Date(today).getDay();
+    if (dayOfWeek === 0) {
+      // Sunday is a holiday, no deliveries
+      return NextResponse.json<ApiResponse>({ success: true, data: [] });
+    }
+
     const client = await pool.connect();
 
     try {
