@@ -77,7 +77,7 @@ export default function AdminLayoutInner({ name, children }: { name: string; chi
         background: 'white',
         borderBottom: '1px solid var(--color-border)',
         padding: '12px 20px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12,
         position: 'sticky', top: 0, zIndex: 20,
         boxShadow: '0 1px 8px rgba(0,0,0,0.06)',
       }}>
@@ -97,7 +97,7 @@ export default function AdminLayoutInner({ name, children }: { name: string; chi
             <div style={{ fontSize: 17, fontWeight: 900, color: 'var(--color-primary)', fontFamily: 'Georgia, serif' }}>Arusuvai</div>
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 12, color: 'var(--color-text-muted)', fontWeight: 600 }}>{name}</span>
           <button
             onClick={() => {

@@ -171,7 +171,7 @@ export default function AdminWeeklyMenuPage() {
   return (
     <div style={{ animation: 'fadeIn 0.3s ease', maxWidth: 800, margin: '0 auto' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 900, color: 'var(--color-text)', fontFamily: 'Georgia, serif', margin: 0 }}>
             Weekly Menu
@@ -262,7 +262,7 @@ export default function AdminWeeklyMenuPage() {
                 padding: '16px 18px',
                 transition: 'box-shadow 0.15s ease',
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
                   <div style={{
                     display: 'inline-flex', alignItems: 'center', gap: 6,
                     background: menuType === 'veg' ? '#2C5E2E' : (menuType === 'premium_non_veg' ? '#9A3412' : '#C05621'),
@@ -279,7 +279,7 @@ export default function AdminWeeklyMenuPage() {
                 </div>
 
                 {menuType !== 'veg' && (
-                  <div style={{ display: 'flex', gap: 12, marginBottom: 10 }}>
+                  <div style={{ display: 'flex', gap: 12, marginBottom: 10, flexWrap: 'wrap' }}>
                      <label style={{ fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
                        <input type="radio" checked={!getVegOverride(day)} onChange={() => handleVegOverride(day, false)} />
                        🍗 Non-Veg Meal
@@ -291,13 +291,13 @@ export default function AdminWeeklyMenuPage() {
                   </div>
                 )}
 
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <input
                     value={currentVal}
                     onChange={(e) => handleEdit(day, e.target.value)}
                     placeholder="e.g. Rice, Sambar, Poriyal, Rasam, Buttermilk, Appalam"
                     style={{
-                      flex: 1,
+                      flex: '1 1 200px',
                       padding: '10px 14px',
                       border: '1.5px solid var(--color-border)',
                       borderRadius: 10,

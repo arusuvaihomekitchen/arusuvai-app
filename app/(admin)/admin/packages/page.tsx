@@ -177,11 +177,11 @@ export default function SubscriptionPackagesPage() {
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'start' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'flex-start' }}>
         {/* Create form */}
         <div style={{
           background: 'white', border: '1.5px solid var(--color-border)',
-          borderRadius: 20, padding: 20,
+          borderRadius: 20, padding: 20, flex: '1 1 300px', minWidth: 0,
         }}>
           <h3 style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-primary)', margin: '0 0 16px', borderBottom: '1px solid var(--color-border)', paddingBottom: 10 }}>
             {editingId ? 'Edit Predefined Package' : t('pkg.create')}
@@ -345,7 +345,7 @@ export default function SubscriptionPackagesPage() {
         </div>
 
         {/* Package list */}
-        <div>
+        <div style={{ flex: '1 1 300px', minWidth: 0 }}>
           <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
             {t('pkg.list')} ({packages.length})
           </h3>
@@ -367,7 +367,7 @@ export default function SubscriptionPackagesPage() {
                   style={{
                     background: 'white', border: '1.5px solid var(--color-border)',
                     borderRadius: 16, padding: 14,
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12,
                   }}
                 >
                   <div>
