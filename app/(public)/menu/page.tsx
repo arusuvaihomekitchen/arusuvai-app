@@ -14,7 +14,7 @@ export const revalidate = 60;
 export default async function UnifiedMenuPage() {
   const [menuRowsResult, settingsResult] = await Promise.all([
     pool.query(`
-      SELECT menu_type, day_of_week, meal_type, items FROM weekly_menu
+      SELECT menu_type, day_of_week, meal_type, items, is_veg_override FROM weekly_menu
       ORDER BY CASE day_of_week
         WHEN 'Monday' THEN 1 WHEN 'Tuesday' THEN 2 WHEN 'Wednesday' THEN 3
         WHEN 'Thursday' THEN 4 WHEN 'Friday' THEN 5 WHEN 'Saturday' THEN 6 ELSE 7 END
