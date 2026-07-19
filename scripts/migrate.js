@@ -101,6 +101,19 @@ async function run() {
     console.log('✓ subscription_plans table created (or already exists)');
 
     // ─────────────────────────────────────────────
+    // 3.5 Create site_settings table
+    // ─────────────────────────────────────────────
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS site_settings (
+        setting_key VARCHAR(50) PRIMARY KEY,
+        setting_value TEXT NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+    console.log('✓ site_settings table created (or already exists)');
+
+
+    // ─────────────────────────────────────────────
     // 4. Seed subscription_plans (3 default plans)
     // ─────────────────────────────────────────────
     const plans = [
