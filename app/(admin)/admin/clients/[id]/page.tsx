@@ -344,7 +344,7 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
       </div>
 
       {/* Profile & Subscription Overview */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
         {/* Profile Card */}
         <div style={cardStyle}>
           <h3 style={cardTitleStyle}>👤 Client Details</h3>
@@ -441,7 +441,7 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
       </div>
 
       {/* History Log Panels */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20, marginTop: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, marginTop: 10 }}>
         {/* Deliveries Log */}
         <div style={cardStyle}>
           <h3 style={cardTitleStyle}>🍱 Recent Deliveries</h3>
@@ -541,7 +541,7 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 12 }}>
           <div>
             <label style={fieldLabel}>Amount (₹)</label>
             <input
@@ -589,18 +589,19 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
         <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 16 }}>For {client.name}</p>
         {error && <div style={errorStyle}>{error}</div>}
         
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 12 }}>
           {[
             { label: 'Full Name *', key: 'name', type: 'text' },
             { label: 'Phone Number *', key: 'phone_number', type: 'text' },
             { label: 'Location / Area', key: 'location', type: 'text' },
-            { label: 'Password (leave blank to keep current)', key: 'password', type: 'password' },
+            { label: 'Reset Password (leave blank to keep current)', key: 'password', type: 'password', placeholder: 'Enter new password to reset' },
             { label: 'Delivery Note', key: 'delivery_note', type: 'text' },
-          ].map(({ label, key, type }) => (
-            <div key={key} style={key === 'delivery_note' ? { gridColumn: 'span 2' } : undefined}>
+          ].map(({ label, key, type, placeholder }) => (
+            <div key={key} style={key === 'delivery_note' ? { gridColumn: '1 / -1' } : undefined}>
               <label style={fieldLabel}>{label}</label>
               <input
                 type={type}
+                placeholder={placeholder}
                 value={(editForm as any)[key]}
                 onChange={(e) => setEditForm((f) => ({ ...f, [key]: e.target.value }))}
                 style={inputSm}
@@ -624,7 +625,7 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
         {/* Subscription section */}
         <div style={{ background: 'var(--color-primary-light)', borderRadius: 14, padding: 14, marginTop: 14, marginBottom: 14 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase', marginBottom: 10 }}>Subscription Details</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10 }}>
             {[
               { label: 'Amount (₹)', key: 'sub_amount', type: 'number', placeholder: 'e.g. 2500' },
               { label: 'Start Date', key: 'start_date', type: 'date' },
@@ -689,7 +690,7 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
         <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 16 }}>For {client.name}</p>
         {error && <div style={errorStyle}>{error}</div>}
         
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 12 }}>
           <div>
             <label style={fieldLabel}>Start Date</label>
             <input

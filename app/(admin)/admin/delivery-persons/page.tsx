@@ -125,7 +125,7 @@ export default function AdminDeliveryPersonsPage() {
         }}>
           <h3 style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-primary)', margin: '0 0 14px' }}>Add Delivery Person</h3>
           {error && <div style={errorStyle}>{error}</div>}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10, marginBottom: 14 }}>
             {[
               { label: 'Name *',     key: 'name',         placeholder: 'e.g. Murugan' },
               { label: 'Phone *',    key: 'phone_number', placeholder: 'e.g. 99001 23456' },

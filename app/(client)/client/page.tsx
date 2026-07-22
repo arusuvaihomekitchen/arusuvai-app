@@ -10,6 +10,7 @@ export default function ClientHomePage() {
   const { t } = useTranslation();
   const [sub, setSub] = useState<(Subscription & { total_service_days?: number; remaining_service_days?: number }) | null>(null);
   const [deliveries, setDeliveries] = useState<DailyDelivery[]>([]);
+  const [history, setHistory] = useState<Record<string, DailyDelivery[]>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -57,6 +58,31 @@ export default function ClientHomePage() {
           }
         }
         setDeliveries(mergedDeliveries);
+
+        // Build history grouped by date (excluding today)
+        const historyGrouped: Record<string, DailyDelivery[]> = {};
+        for (const d of (histData.data?.deliveries ?? [])) {
+          const dDate = d.date.slice(0, 10);
+          if (dDate === today) continue; // skip today as it's shown above
+          if (!historyGrouped[dDate]) historyGrouped[dDate] = [];
+          historyGrouped[dDate].push(d);
+        }
+        for (const s of (histData.data?.skips ?? [])) {
+          const sDate = s.date.slice(0, 10);
+          if (sDate === today) continue;
+          if (!historyGrouped[sDate]) historyGrouped[sDate] = [];
+          if (!historyGrouped[sDate].some((d) => d.meal_type === s.meal_type)) {
+            historyGrouped[sDate].push({
+              id: `temp_${s.meal_type}_${sDate}`,
+              client_id: subData.data?.client_id ?? '',
+              date: s.date,
+              meal_type: s.meal_type,
+              status: (s.status === 'approved' ? 'skipped' : 'pending_skip') as any,
+              skip_request_id: s.id,
+            } as any);
+          }
+        }
+        setHistory(historyGrouped);
       } finally {
         setLoading(false);
       }
@@ -193,6 +219,38 @@ export default function ClientHomePage() {
             />
           ))}
         </>
+      )}
+
+      {/* Delivery History */}
+      {!isExpired && Object.keys(history).length > 0 && (
+        <div style={{ marginTop: 28 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)', fontFamily: 'Georgia, serif', marginBottom: 16 }}>
+            {t('meal.deliveryHistory', { defaultValue: 'Delivery History' })}
+          </h2>
+          {Object.keys(history)
+            .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+            .map((dateStr) => (
+              <div key={dateStr} style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-text-light)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  {new Date(dateStr).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}
+                </div>
+                {history[dateStr]
+                  .sort((a, b) => {
+                    const order = { Breakfast: 1, Lunch: 2, Dinner: 3 };
+                    return (order[a.meal_type as keyof typeof order] || 9) - (order[b.meal_type as keyof typeof order] || 9);
+                  })
+                  .map(d => (
+                    <MealCard
+                      key={d.id}
+                      label={t(`meal.${d.meal_type.toLowerCase()}`, { defaultValue: d.meal_type })}
+                      icon={d.meal_type === 'Breakfast' ? '🍳' : d.meal_type === 'Lunch' ? '🍱' : '🌙'}
+                      time=""
+                      delivery={d}
+                    />
+                  ))}
+              </div>
+          ))}
+        </div>
       )}
     </div>
   );

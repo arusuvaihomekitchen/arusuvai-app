@@ -238,7 +238,7 @@ export default function AdminClientsPage() {
         }}>
           <h3 style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-primary)', margin: '0 0 16px' }}>Register New Client</h3>
           {error && <div style={errorStyle}>{error}</div>}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
             {[
               { label: 'Full Name *', key: 'name', placeholder: 'e.g. Ramesh Kumar' },
               { label: 'Phone Number *', key: 'phone_number', placeholder: 'e.g. 8667670695' },
@@ -246,7 +246,7 @@ export default function AdminClientsPage() {
               { label: 'Password *', key: 'password', placeholder: 'Initial password' },
               { label: 'Delivery Note', key: 'delivery_note', placeholder: 'e.g. Gate 2, ring bell' },
             ].map(({ label, key, placeholder }) => (
-              <div key={key} style={key === 'delivery_note' ? { gridColumn: 'span 2' } : undefined}>
+              <div key={key} style={key === 'delivery_note' ? { gridColumn: '1 / -1' } : undefined}>
                 <label style={fieldLabel}>{label}</label>
                 <input
                   placeholder={placeholder}
@@ -301,7 +301,7 @@ export default function AdminClientsPage() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
               <div>
                 <label style={fieldLabel}>Amount (₹)</label>
                 <input
@@ -561,7 +561,7 @@ export default function AdminClientsPage() {
           </div>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
           {filtered.map((c) => {
             const status = getSubStatus(c);
             const rem = remainingDays(c);

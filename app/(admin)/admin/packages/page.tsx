@@ -209,7 +209,7 @@ export default function SubscriptionPackagesPage() {
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
               <div>
                 <label style={labelStyle}>{t('pkg.days')} *</label>
                 <input
@@ -307,7 +307,7 @@ export default function SubscriptionPackagesPage() {
                       style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }}
                     />
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
                     <div>
                       <label style={labelStyle}>WhatsApp Number</label>
                       <input

@@ -44,8 +44,7 @@ export default function MenuTabs({ menuRows, dateRange }: MenuTabsProps) {
     <div>
       {/* Scrollable Tabs */}
       <div style={{
-        display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 16, marginBottom: 24,
-        scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch'
+        display: 'flex', gap: 8, flexWrap: 'wrap', paddingBottom: 16, marginBottom: 24
       }}>
         {PACKAGES.map(pkg => {
           const isActive = activeTab === pkg.id;
