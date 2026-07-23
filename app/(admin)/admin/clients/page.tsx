@@ -143,9 +143,12 @@ export default function AdminClientsPage() {
   function remainingDays(c: ClientRow) {
     if (!c.end_date) return 0;
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const end = new Date(c.end_date);
     if (end < today) return 0;
-    return countServiceDays(today, end);
+    const start = c.start_date ? new Date(c.start_date) : today;
+    const fromDate = start > today ? start : today;
+    return countServiceDays(fromDate, end);
   }
 
   async function addClient() {

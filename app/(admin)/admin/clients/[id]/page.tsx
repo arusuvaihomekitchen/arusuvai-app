@@ -106,9 +106,12 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
   function remainingDays(sub: any) {
     if (!sub || !sub.end_date) return 0;
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const end = new Date(sub.end_date);
     if (end < today) return 0;
-    return countServiceDays(today, end);
+    const start = sub.start_date ? new Date(sub.start_date) : today;
+    const fromDate = start > today ? start : today;
+    return countServiceDays(fromDate, end);
   }
 
   // Action Triggers
