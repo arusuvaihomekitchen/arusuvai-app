@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import pool from '@/lib/db';
-import { todayIST } from '@/lib/dateUtils';
+import { todayIST, addServiceDays } from '@/lib/dateUtils';
 import type { ApiResponse } from '@/types';
 
 export async function POST(req: NextRequest) {
@@ -23,28 +23,59 @@ export async function POST(req: NextRequest) {
 
       // 1. Get all active clients with valid subscription for today, including meal flags
       const clients = await client.query(
-        `SELECT u.id, u.name, s.subscribe_breakfast, s.subscribe_lunch, s.subscribe_dinner
+        `SELECT u.id, u.name, s.subscribe_breakfast, s.subscribe_lunch, s.subscribe_dinner, s.start_date, s.end_date
          FROM users u
          JOIN subscriptions s ON s.client_id = u.id
          WHERE u.role = 'client'
            AND u.is_active = true
            AND s.start_date <= $1
-           AND s.end_date >= $1
            AND s.status = 'active'`,
          [today]
       );
 
+      // Fetch skip counts for these clients to adjust end_date
+      const skipCounts = await client.query(
+        `SELECT sr.client_id, sr.meal_type, COUNT(*) as skips
+         FROM skip_requests sr
+         JOIN subscriptions s ON s.client_id = sr.client_id
+         WHERE sr.status = 'approved' AND sr.date >= s.start_date
+         GROUP BY sr.client_id, sr.meal_type`
+      );
+
+      const skipsMap = new Map<string, number>();
+      for (const row of skipCounts.rows) {
+        skipsMap.set(`${row.client_id}-${row.meal_type}`, parseInt(row.skips, 10));
+      }
+
+      // We'll need addServiceDays here. Since we're in an API route, we can inline a quick helper or import it.
+      // Wait, we can import it at the top of the file.
+      // Let's assume addServiceDays is imported.
+      
       // Create set of active client_id + meal_type pairs
       const activePairs: { client_id: string; meal_type: string }[] = [];
       for (const c of clients.rows) {
+        const baseEnd = new Date(c.end_date);
+        
         if (c.subscribe_breakfast === true) {
-          activePairs.push({ client_id: c.id, meal_type: 'Breakfast' });
+          const skips = skipsMap.get(`${c.id}-Breakfast`) || 0;
+          const adjustedEnd = addServiceDays(baseEnd, skips);
+          if (new Date(today) <= adjustedEnd) {
+            activePairs.push({ client_id: c.id, meal_type: 'Breakfast' });
+          }
         }
         if (c.subscribe_lunch !== false) {
-          activePairs.push({ client_id: c.id, meal_type: 'Lunch' });
+          const skips = skipsMap.get(`${c.id}-Lunch`) || 0;
+          const adjustedEnd = addServiceDays(baseEnd, skips);
+          if (new Date(today) <= adjustedEnd) {
+            activePairs.push({ client_id: c.id, meal_type: 'Lunch' });
+          }
         }
         if (c.subscribe_dinner !== false) {
-          activePairs.push({ client_id: c.id, meal_type: 'Dinner' });
+          const skips = skipsMap.get(`${c.id}-Dinner`) || 0;
+          const adjustedEnd = addServiceDays(baseEnd, skips);
+          if (new Date(today) <= adjustedEnd) {
+            activePairs.push({ client_id: c.id, meal_type: 'Dinner' });
+          }
         }
       }
 

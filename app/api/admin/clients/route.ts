@@ -19,7 +19,10 @@ export async function GET() {
          s.subscribe_lunch,
          s.subscribe_dinner,
          s.subscribe_breakfast,
-         p.status as payment_status
+         p.status as payment_status,
+         skips.breakfast_skips,
+         skips.lunch_skips,
+         skips.dinner_skips
        FROM users u
        LEFT JOIN LATERAL (
          SELECT * FROM subscriptions
@@ -33,6 +36,14 @@ export async function GET() {
            AND month = EXTRACT(MONTH FROM NOW())
          LIMIT 1
        ) p ON true
+       LEFT JOIN LATERAL (
+         SELECT
+           COUNT(CASE WHEN meal_type = 'Breakfast' THEN 1 END) as breakfast_skips,
+           COUNT(CASE WHEN meal_type = 'Lunch' THEN 1 END) as lunch_skips,
+           COUNT(CASE WHEN meal_type = 'Dinner' THEN 1 END) as dinner_skips
+         FROM skip_requests sr
+         WHERE sr.client_id = u.id AND sr.status = 'approved' AND sr.date >= s.start_date
+       ) skips ON true
        WHERE u.role = 'client'
        ORDER BY u.name`
     );

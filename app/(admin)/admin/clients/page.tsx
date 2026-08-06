@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
-import { countServiceDays } from '@/lib/dateUtils';
+import { countServiceDays, addServiceDays } from '@/lib/dateUtils';
 import { swrFetch, invalidateCache } from '@/lib/clientCache';
 
 function calculateEndDate(startDateStr: string, serviceDays: number): string {
@@ -33,6 +33,9 @@ interface ClientRow {
   subscribe_lunch?: boolean;
   subscribe_dinner?: boolean;
   subscribe_breakfast?: boolean;
+  breakfast_skips?: string;
+  lunch_skips?: string;
+  dinner_skips?: string;
 }
 
 export default function AdminClientsPage() {
@@ -130,25 +133,60 @@ export default function AdminClientsPage() {
 
   const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
+  function getAdjustedEndDates(c: ClientRow) {
+    const dates: Record<string, Date> = {};
+    if (!c.end_date) return dates;
+    const baseEnd = new Date(c.end_date);
+    
+    if (c.subscribe_breakfast) {
+      const skips = parseInt(c.breakfast_skips || '0', 10);
+      dates['Breakfast'] = addServiceDays(baseEnd, skips);
+    }
+    if (c.subscribe_lunch !== false) {
+      const skips = parseInt(c.lunch_skips || '0', 10);
+      dates['Lunch'] = addServiceDays(baseEnd, skips);
+    }
+    if (c.subscribe_dinner !== false) {
+      const skips = parseInt(c.dinner_skips || '0', 10);
+      dates['Dinner'] = addServiceDays(baseEnd, skips);
+    }
+    return dates;
+  }
+
   function getSubStatus(c: ClientRow) {
     if (!c.end_date) return 'expired';
-    const today = new Date(todayStr);
-    const end = new Date(c.end_date);
-    if (today > end) return 'expired';
     if (!c.start_date) return 'expired';
-    if (today < new Date(c.start_date)) return 'not_started';
-    return 'active';
+    const today = new Date(todayStr);
+    today.setHours(0,0,0,0);
+    const start = new Date(c.start_date);
+    start.setHours(0,0,0,0);
+    if (today < start) return 'not_started';
+    
+    const adjustedDates = getAdjustedEndDates(c);
+    const hasActiveMeal = Object.values(adjustedDates).some(d => {
+      d.setHours(0,0,0,0);
+      return today <= d;
+    });
+    
+    return hasActiveMeal ? 'active' : 'expired';
   }
 
   function remainingDays(c: ClientRow) {
     if (!c.end_date) return 0;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const end = new Date(c.end_date);
-    if (end < today) return 0;
     const start = c.start_date ? new Date(c.start_date) : today;
     const fromDate = start > today ? start : today;
-    return countServiceDays(fromDate, end);
+    
+    const adjustedDates = getAdjustedEndDates(c);
+    let maxRem = 0;
+    for (const end of Object.values(adjustedDates)) {
+      if (end >= today) {
+        const rem = countServiceDays(fromDate, end);
+        if (rem > maxRem) maxRem = rem;
+      }
+    }
+    return maxRem;
   }
 
   async function addClient() {

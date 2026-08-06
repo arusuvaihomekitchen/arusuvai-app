@@ -19,6 +19,20 @@ export function countServiceDays(startDate: Date, endDate: Date): number {
 }
 
 /**
+ * Add service days (skipping Sundays) to a given date.
+ */
+export function addServiceDays(startDate: Date | string, daysToAdd: number): Date {
+  const current = new Date(startDate);
+  current.setHours(12, 0, 0, 0); // Avoid timezone boundary issues
+  let added = 0;
+  while (added < daysToAdd) {
+    current.setDate(current.getDate() + 1);
+    if (current.getDay() !== 0) added++; // Skip Sundays
+  }
+  return current;
+}
+
+/**
  * Count remaining service days from today (inclusive) to endDate.
  */
 export function serviceDaysRemaining(endDate: Date): number {

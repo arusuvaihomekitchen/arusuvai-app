@@ -8,7 +8,7 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import CustomConfirmModal from '@/components/ui/CustomConfirmModal';
-import { countServiceDays } from '@/lib/dateUtils';
+import { countServiceDays, addServiceDays } from '@/lib/dateUtils';
 import { swrFetch, invalidateCache } from '@/lib/clientCache';
 
 interface ClientDetailProps {
@@ -93,25 +93,59 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
 
   const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
-  function getSubStatus(c: any, sub: any) {
-    if (!sub || !sub.end_date) return 'expired';
-    const today = new Date(todayStr);
-    const end = new Date(sub.end_date);
-    if (today > end) return 'expired';
-    if (!sub.start_date) return 'expired';
-    if (today < new Date(sub.start_date)) return 'not_started';
-    return 'active';
+  function getAdjustedEndDates(sub: any) {
+    const dates: Record<string, Date> = {};
+    if (!sub || !sub.end_date) return dates;
+    const baseEnd = new Date(sub.end_date);
+    const skips = data?.skipCounts || [];
+    
+    if (sub.subscribe_breakfast) {
+      const bSkips = parseInt(skips.find((s: any) => s.meal_type === 'Breakfast')?.count || '0', 10);
+      dates['Breakfast'] = addServiceDays(baseEnd, bSkips);
+    }
+    if (sub.subscribe_lunch !== false) {
+      const lSkips = parseInt(skips.find((s: any) => s.meal_type === 'Lunch')?.count || '0', 10);
+      dates['Lunch'] = addServiceDays(baseEnd, lSkips);
+    }
+    if (sub.subscribe_dinner !== false) {
+      const dSkips = parseInt(skips.find((s: any) => s.meal_type === 'Dinner')?.count || '0', 10);
+      dates['Dinner'] = addServiceDays(baseEnd, dSkips);
+    }
+    return dates;
   }
 
-  function remainingDays(sub: any) {
-    if (!sub || !sub.end_date) return 0;
+  function getSubStatus(c: any, sub: any) {
+    if (!sub || !sub.end_date) return 'expired';
+    if (!sub.start_date) return 'expired';
+    const today = new Date(todayStr);
+    today.setHours(0,0,0,0);
+    const start = new Date(sub.start_date);
+    start.setHours(0,0,0,0);
+    if (today < start) return 'not_started';
+    
+    const adjustedDates = getAdjustedEndDates(sub);
+    const hasActiveMeal = Object.values(adjustedDates).some(d => {
+      d.setHours(0,0,0,0);
+      return today <= d;
+    });
+    
+    return hasActiveMeal ? 'active' : 'expired';
+  }
+
+  function remainingDaysPerMeal(sub: any) {
+    if (!sub || !sub.end_date) return {};
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const end = new Date(sub.end_date);
-    if (end < today) return 0;
     const start = sub.start_date ? new Date(sub.start_date) : today;
     const fromDate = start > today ? start : today;
-    return countServiceDays(fromDate, end);
+    
+    const adjustedDates = getAdjustedEndDates(sub);
+    const rem: Record<string, number> = {};
+    for (const [meal, end] of Object.entries(adjustedDates)) {
+      if (end < today) rem[meal] = 0;
+      else rem[meal] = countServiceDays(fromDate, end);
+    }
+    return rem;
   }
 
   // Action Triggers
@@ -303,7 +337,7 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
   const client = data.client;
   const sub = data.subscription;
   const status = getSubStatus(client, sub);
-  const rem = remainingDays(sub);
+  const rem = remainingDaysPerMeal(sub);
 
   const mealsList = sub ? [
     sub.subscribe_breakfast === true ? 'Breakfast 🍳' : null,
@@ -392,7 +426,11 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
               </div>
               <div style={infoRowStyle}>
                 <span style={labelStyle}>Service Days Remaining</span>
-                <span style={{ ...valueStyle, fontWeight: 800 }}>{rem} service days</span>
+                <span style={{ ...valueStyle, fontWeight: 800 }}>
+                  {Object.entries(rem).map(([meal, days]) => (
+                    <div key={meal}>{meal}: {days} days</div>
+                  ))}
+                </span>
               </div>
             </div>
           ) : (

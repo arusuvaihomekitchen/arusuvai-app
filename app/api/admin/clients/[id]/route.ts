@@ -37,6 +37,18 @@ export async function GET(
 
     const subscription = subRes.rows[0] || null;
 
+    let skipCounts = [];
+    if (subscription) {
+      const countsRes = await pool.query(
+        `SELECT meal_type, COUNT(*) as count
+         FROM skip_requests
+         WHERE client_id = $1 AND status = 'approved' AND date >= $2
+         GROUP BY meal_type`,
+        [id, subscription.start_date]
+      );
+      skipCounts = countsRes.rows;
+    }
+
     // Fetch skip requests
     const skipsRes = await pool.query(
       `SELECT * FROM skip_requests WHERE client_id = $1 ORDER BY date DESC LIMIT 10`,
@@ -60,6 +72,7 @@ export async function GET(
         client: user,
         subscription,
         skips: skipsRes.rows,
+        skipCounts,
         deliveries: deliveriesRes.rows,
       },
     });

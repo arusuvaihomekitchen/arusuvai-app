@@ -35,6 +35,8 @@ export default function Modal({ open, onClose, children, maxWidth = 360 }: Modal
           padding: 28,
           width: '100%',
           maxWidth,
+          maxHeight: '90vh',
+          overflowY: 'auto',
           animation: 'slideUp 0.25s ease',
           boxShadow: '0 24px 48px rgba(0,0,0,0.2)',
         }}
