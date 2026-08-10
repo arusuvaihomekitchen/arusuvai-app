@@ -140,10 +140,33 @@ export default function AdminTodayPage() {
     loadDeliveries(true);
   }
 
+  const [listFilter, setListFilter] = useState<'all' | 'to_deliver' | 'delivered' | 'pending_skips'>('all');
+
   const filtered = deliveries.filter((d) => d.meal_type === mealTab);
   const toDeliver = filtered.filter((d) => ['pending', 'assigned'].includes(d.status));
   const completedRows = filtered.filter((d) => ['delivered', 'not_available', 'skipped'].includes(d.status));
   const pendingSkips = filtered.filter((d) => d.skip_req_id && d.skip_status === 'pending').length;
+
+  const groupedToDeliver = toDeliver.reduce((acc, d) => {
+    const loc = d.location || 'Unknown Location';
+    if (!acc[loc]) acc[loc] = [];
+    acc[loc].push(d);
+    return acc;
+  }, {} as Record<string, DailyDelivery[]>);
+
+  const toggleLocationSelect = (loc: string) => {
+    const ids = groupedToDeliver[loc].map(d => d.id);
+    setSelected(prev => {
+      const next = new Set(prev);
+      const allSelected = ids.every(id => next.has(id));
+      if (allSelected) {
+        ids.forEach(id => next.delete(id));
+      } else {
+        ids.forEach(id => next.add(id));
+      }
+      return next;
+    });
+  };
 
   function navDate(dir: number) {
     const d = new Date(date + 'T00:00:00');
@@ -202,14 +225,14 @@ export default function AdminTodayPage() {
       {/* Summary pills */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
         {[
-          { label: 'Total', value: filtered.length, style: { background: 'white', border: '1px solid var(--color-border)', color: 'var(--color-text)' } },
-          { label: 'To deliver', value: toDeliver.length, style: { background: 'white', border: '1px solid var(--color-border)', color: 'var(--color-text)' } },
-          { label: 'Delivered', value: completedRows.filter((d) => d.status === 'delivered').length, style: { background: 'var(--color-primary-light)', border: '1px solid #A8D4A8', color: 'var(--color-primary)' } },
-          pendingSkips > 0 ? { label: 'Pending skips', value: pendingSkips, style: { background: 'var(--color-accent-light)', border: '1px solid var(--color-accent)', color: 'var(--color-accent-dark)' } } : null,
+          { id: 'all', label: 'Total', value: filtered.length, style: { background: listFilter === 'all' ? 'var(--color-primary)' : 'white', border: '1px solid var(--color-border)', color: listFilter === 'all' ? 'white' : 'var(--color-text)' } },
+          { id: 'to_deliver', label: 'To deliver', value: toDeliver.length, style: { background: listFilter === 'to_deliver' ? 'var(--color-primary)' : 'white', border: '1px solid var(--color-border)', color: listFilter === 'to_deliver' ? 'white' : 'var(--color-text)' } },
+          { id: 'delivered', label: 'Delivered', value: completedRows.filter((d) => d.status === 'delivered').length, style: { background: listFilter === 'delivered' ? 'var(--color-primary)' : 'var(--color-primary-light)', border: '1px solid #A8D4A8', color: listFilter === 'delivered' ? 'white' : 'var(--color-primary)' } },
+          pendingSkips > 0 ? { id: 'pending_skips', label: 'Pending skips', value: pendingSkips, style: { background: listFilter === 'pending_skips' ? 'var(--color-accent)' : 'var(--color-accent-light)', border: '1px solid var(--color-accent)', color: listFilter === 'pending_skips' ? 'white' : 'var(--color-accent-dark)' } } : null,
         ].filter(Boolean).map((p) => p && (
-          <div key={p.label} style={{
+          <div key={p.label} onClick={() => setListFilter(p.id as any)} style={{
             ...p.style, borderRadius: 12, padding: '8px 14px', fontSize: 12,
-            display: 'flex', alignItems: 'center', gap: 6,
+            display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', transition: 'all 0.15s ease'
           }}>
             <span style={{ fontWeight: 600 }}>{p.label}</span>
             <span style={{ fontWeight: 900, fontSize: 14 }}>{p.value}</span>
@@ -269,26 +292,52 @@ export default function AdminTodayPage() {
       ) : (
         <>
           {/* To Be Delivered */}
-          {toDeliver.length > 0 && (
+          {(listFilter === 'all' || listFilter === 'to_deliver' || listFilter === 'pending_skips') && toDeliver.length > 0 && (
             <div style={{ marginBottom: 24 }}>
               <h3 style={sectionHeader}>📦 To Be Delivered — {toDeliver.length}</h3>
-              {toDeliver.map((d) => (
-                <DeliveryRow
-                  key={d.id}
-                  delivery={d}
-                  selected={selected.has(d.id)}
-                  onToggle={() => toggleSelect(d.id)}
-                  onApproveSkip={() => d.skip_req_id && approveSkip(d.skip_req_id)}
-                  onRejectSkip={() => d.skip_req_id && rejectSkip(d.skip_req_id)}
-                  onAdminSkip={() => setConfirmSkipDelivery(d)}
-                  onRefresh={loadDeliveries}
-                />
-              ))}
+              {Object.entries(groupedToDeliver).map(([loc, rows]) => {
+                const displayRows = listFilter === 'pending_skips' 
+                  ? rows.filter(d => d.skip_req_id && d.skip_status === 'pending')
+                  : rows;
+                
+                if (displayRows.length === 0) return null;
+                
+                const allSelected = displayRows.length > 0 && displayRows.every(d => selected.has(d.id));
+
+                return (
+                  <div key={loc} style={{ marginBottom: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, padding: '0 4px' }}>
+                      <h4 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: 'var(--color-text)' }}>📍 {loc}</h4>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: 'var(--color-primary)', cursor: 'pointer' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={allSelected} 
+                          onChange={() => toggleLocationSelect(loc)}
+                          style={{ accentColor: 'var(--color-primary)' }}
+                        />
+                        Select All in {loc}
+                      </label>
+                    </div>
+                    {displayRows.map((d) => (
+                      <DeliveryRow
+                        key={d.id}
+                        delivery={d}
+                        selected={selected.has(d.id)}
+                        onToggle={() => toggleSelect(d.id)}
+                        onApproveSkip={() => d.skip_req_id && approveSkip(d.skip_req_id)}
+                        onRejectSkip={() => d.skip_req_id && rejectSkip(d.skip_req_id)}
+                        onAdminSkip={() => setConfirmSkipDelivery(d)}
+                        onRefresh={loadDeliveries}
+                      />
+                    ))}
+                  </div>
+                );
+              })}
             </div>
           )}
 
           {/* Completed */}
-          {completedRows.length > 0 && (
+          {(listFilter === 'all' || listFilter === 'delivered') && completedRows.length > 0 && (
             <div>
               <h3 style={{ ...sectionHeader, color: 'var(--color-primary)' }}>✅ Completed — {completedRows.length}</h3>
               {completedRows.map((d) => (
@@ -373,7 +422,10 @@ function DeliveryRow({
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6, marginBottom: 4 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-text)' }}>{d.client_name}</span>
+              <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                {d.client_name}
+                <span style={{ fontSize: 10 }}>{(d as any).diet_preference === 'Non-Veg' ? '🔴' : '🟢'}</span>
+              </span>
               <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>📞 {d.phone_number}</span>
             </div>
             <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -420,7 +472,10 @@ function CompletedRow({ delivery: d, onRestore }: { delivery: DailyDelivery; onR
       opacity: 0.9,
     }}>
       <div>
-        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{d.client_name}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          {d.client_name}
+          <span style={{ fontSize: 9 }}>{(d as any).diet_preference === 'Non-Veg' ? '🔴' : '🟢'}</span>
+        </span>
         <span style={{ fontSize: 11, color: 'var(--color-text-muted)', marginLeft: 8 }}>📍 {d.location}</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

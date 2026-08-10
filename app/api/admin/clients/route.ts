@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
     const session = await getSession();
     if (!session) return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 });
 
-    const { name, phone_number, location, password, delivery_note, subscription } = await req.json();
+    const { name, phone_number, location, password, delivery_note, subscription, diet_preference } = await req.json();
 
     if (!name || !phone_number || !password) {
       return NextResponse.json<ApiResponse>({ success: false, error: 'Name, phone number, and password are required' }, { status: 400 });
@@ -74,9 +74,9 @@ export async function POST(req: NextRequest) {
       await db.query('BEGIN');
 
       await db.query(
-        `INSERT INTO users (id, name, phone_number, role, location, username, password_hash, delivery_note, created_by)
-         VALUES ($1, $2, $3, 'client', $4, $5, $6, $7, $8)`,
-        [userId, name, phone_number, location ?? '', phone_number, passwordHash, delivery_note ?? '', session.id]
+        `INSERT INTO users (id, name, phone_number, role, location, username, password_hash, delivery_note, created_by, diet_preference)
+         VALUES ($1, $2, $3, 'client', $4, $5, $6, $7, $8, $9)`,
+        [userId, name, phone_number, location ?? '', phone_number, passwordHash, delivery_note ?? '', session.id, diet_preference ?? 'Veg']
       );
 
       if (subscription) {

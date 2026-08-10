@@ -67,6 +67,7 @@ export default function AdminClientsPage() {
     sub_amount: '', sub_start: '', sub_end: '',
     subscribe_breakfast: false,
     subscribe_lunch: true, subscribe_dinner: true,
+    diet_preference: 'Veg',
   });
 
   useEffect(() => {
@@ -209,6 +210,7 @@ export default function AdminClientsPage() {
             subscribe_lunch: form.subscribe_lunch,
             subscribe_dinner: form.subscribe_dinner,
           } : undefined,
+          diet_preference: form.diet_preference,
         }),
       });
       const data = await res.json();
@@ -218,7 +220,8 @@ export default function AdminClientsPage() {
           name:'', phone_number:'', location:'', password:'', delivery_note:'',
           sub_amount:'', sub_start:'', sub_end:'',
           subscribe_breakfast: false,
-          subscribe_lunch: true, subscribe_dinner: true
+          subscribe_lunch: true, subscribe_dinner: true,
+          diet_preference: 'Veg'
         });
         invalidateCache('/api/admin/clients');
         setSelectedPkgId('custom');
@@ -229,7 +232,8 @@ export default function AdminClientsPage() {
     } finally { setSaving(false); }
   }
 
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active_sub' | 'expired_sub' | 'deactivated'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active_sub' | 'expired_sub' | 'expiring_soon' | 'deactivated'>('all');
+  const [sortMode, setSortMode] = useState<'name' | 'validityAsc' | 'validityDesc'>('name');
 
   const filtered = clients.filter((c) => {
     const matchesSearch =
@@ -244,11 +248,25 @@ export default function AdminClientsPage() {
       return c.is_active && subStatus === 'active';
     } else if (statusFilter === 'expired_sub') {
       return c.is_active && (subStatus === 'expired' || subStatus === 'not_started');
+    } else if (statusFilter === 'expiring_soon') {
+      if (!c.is_active || subStatus !== 'active') return false;
+      const rem = remainingDays(c);
+      return rem <= 3;
     } else if (statusFilter === 'deactivated') {
       return !c.is_active;
     } else {
       // 'all' - Show all active profiles
       return c.is_active;
+    }
+  });
+  
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortMode === 'name') {
+      return a.name.localeCompare(b.name);
+    } else {
+      const remA = remainingDays(a);
+      const remB = remainingDays(b);
+      return sortMode === 'validityAsc' ? remA - remB : remB - remA;
     }
   });
 
@@ -297,6 +315,19 @@ export default function AdminClientsPage() {
                 />
               </div>
             ))}
+            <div style={{ gridColumn: '1 / -1', marginTop: 8 }}>
+              <label style={fieldLabel}>Diet Preference</label>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, cursor: 'pointer' }}>
+                  <input type="radio" name="diet_preference" value="Veg" checked={form.diet_preference === 'Veg'} onChange={(e) => setForm(f => ({ ...f, diet_preference: 'Veg' }))} />
+                  Veg 🟢
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, cursor: 'pointer' }}>
+                  <input type="radio" name="diet_preference" value="Non-Veg" checked={form.diet_preference === 'Non-Veg'} onChange={(e) => setForm(f => ({ ...f, diet_preference: 'Non-Veg' }))} />
+                  Non-Veg 🔴
+                </label>
+              </div>
+            </div>
           </div>
 
           {/* Subscription */}
@@ -416,17 +447,26 @@ export default function AdminClientsPage() {
         </div>
       )}
 
-      {/* Search & View Switcher */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
         <input
           placeholder="🔍 Search by name or location…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{ ...inputSm, flex: 1 }}
+          style={{ ...inputSm, flex: 1, minWidth: 200 }}
         />
-        <div style={{ display: 'flex', border: '1.5px solid var(--color-border)', borderRadius: 10, overflow: 'hidden', background: 'white' }}>
-          <button
-            onClick={() => handleSetViewMode('grid')}
+        <div style={{ display: 'flex', gap: 10 }}>
+          <select 
+            value={sortMode}
+            onChange={(e) => setSortMode(e.target.value as any)}
+            style={{ ...inputSm, cursor: 'pointer', background: 'white' }}
+          >
+            <option value="name">Sort: Name</option>
+            <option value="validityAsc">Sort: Expiring First</option>
+            <option value="validityDesc">Sort: Most Days Left</option>
+          </select>
+          <div style={{ display: 'flex', border: '1.5px solid var(--color-border)', borderRadius: 10, overflow: 'hidden', background: 'white' }}>
+            <button
+              onClick={() => handleSetViewMode('grid')}
             style={{
               padding: '0 14px',
               border: 'none',
@@ -473,6 +513,7 @@ export default function AdminClientsPage() {
           { id: 'all', label: 'All Active Profiles', count: allActiveCount, icon: '👥' },
           { id: 'active_sub', label: 'Active Subscriptions', count: activeSubCount, icon: '🟢' },
           { id: 'expired_sub', label: 'Expired/No Sub', count: expiredSubCount, icon: '🔴' },
+          { id: 'expiring_soon', label: 'Expiring Soon (≤3 days)', count: clients.filter(c => c.is_active && getSubStatus(c) === 'active' && remainingDays(c) <= 3).length, icon: '⏳' },
           { id: 'deactivated', label: 'Deactivated', count: deactivatedCount, icon: '🚫' },
         ].map((tab) => {
           const isSel = statusFilter === tab.id;
@@ -528,7 +569,7 @@ export default function AdminClientsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((c, index) => {
+                {sorted.map((c, index) => {
                   const status = getSubStatus(c);
                   const rem = remainingDays(c);
                   const isExpired = status === 'expired';
@@ -544,7 +585,10 @@ export default function AdminClientsPage() {
                         {index + 1}
                       </td>
                       <td style={tdStyle}>
-                        <div style={{ fontWeight: 800, color: 'var(--color-text)', fontSize: 14 }}>{c.name}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <div style={{ fontWeight: 800, color: 'var(--color-text)', fontSize: 14 }}>{c.name}</div>
+                          <span style={{ fontSize: 10 }}>{c.diet_preference === 'Non-Veg' ? '🔴' : '🟢'}</span>
+                        </div>
                         <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 2 }}>📞 {c.phone_number || '—'}</div>
                       </td>
                       <td style={tdStyle}>
@@ -603,7 +647,7 @@ export default function AdminClientsPage() {
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
-          {filtered.map((c) => {
+          {sorted.map((c) => {
             const status = getSubStatus(c);
             const rem = remainingDays(c);
             const isExpired = status === 'expired';
@@ -624,7 +668,10 @@ export default function AdminClientsPage() {
                 }} />
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
                   <div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)' }}>{c.name}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)' }}>{c.name}</div>
+                      <span style={{ fontSize: 10 }}>{c.diet_preference === 'Non-Veg' ? '🔴' : '🟢'}</span>
+                    </div>
                     <div style={{ fontSize: 12, color: 'var(--color-text-light)' }}>📞 {c.phone_number || '—'}</div>
                     <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 2 }}>📍 {c.location || '—'}</div>
                   </div>

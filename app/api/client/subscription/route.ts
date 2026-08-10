@@ -22,6 +22,20 @@ export async function GET() {
     }
 
     const sub = result.rows[0] as Subscription;
+
+    const skipsResult = await pool.query(
+      `SELECT meal_type, COUNT(*) as count 
+       FROM skip_requests 
+       WHERE client_id = $1 AND status = 'approved' 
+       GROUP BY meal_type`,
+      [session.id]
+    );
+
+    const skipCounts = skipsResult.rows.map(r => ({
+      meal_type: r.meal_type,
+      count: parseInt(r.count, 10)
+    }));
+
     const status = getSubscriptionStatus(sub);
     const totalServiceDays = countServiceDays(new Date(sub.start_date), new Date(sub.end_date));
     const remainingServiceDays = serviceDaysRemaining(new Date(sub.end_date));
@@ -33,6 +47,7 @@ export async function GET() {
         status,
         total_service_days: totalServiceDays,
         remaining_service_days: remainingServiceDays,
+        skipCounts,
       },
     });
   } catch (err) {

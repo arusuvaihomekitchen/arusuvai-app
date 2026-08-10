@@ -19,7 +19,7 @@ export async function GET(
 
     // Fetch user
     const userRes = await pool.query(
-      `SELECT id, name, phone_number, location, delivery_note, is_active, created_at FROM users WHERE id = $1 AND role = 'client'`,
+      `SELECT id, name, phone_number, location, delivery_note, diet_preference, is_active, created_at FROM users WHERE id = $1 AND role = 'client'`,
       [id]
     );
 
@@ -94,7 +94,7 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await req.json();
-    const { name, phone_number, location, password, delivery_note, is_active, sub_amount, start_date, end_date, subscribe_lunch, subscribe_dinner, subscribe_breakfast } = body;
+    const { name, phone_number, location, password, delivery_note, diet_preference, is_active, sub_amount, start_date, end_date, subscribe_lunch, subscribe_dinner, subscribe_breakfast } = body;
 
     const db = await pool.connect();
     try {
@@ -122,6 +122,10 @@ export async function PATCH(
       if (delivery_note !== undefined) {
         updates.push(`delivery_note = $${placeholderIdx++}`);
         values.push(delivery_note);
+      }
+      if (diet_preference !== undefined) {
+        updates.push(`diet_preference = $${placeholderIdx++}`);
+        values.push(diet_preference);
       }
       if (is_active !== undefined) {
         updates.push(`is_active = $${placeholderIdx++}`);

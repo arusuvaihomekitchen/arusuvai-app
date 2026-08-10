@@ -8,7 +8,7 @@ import { useTranslation } from '@/i18n';
 
 export default function ClientHomePage() {
   const { t } = useTranslation();
-  const [sub, setSub] = useState<(Subscription & { total_service_days?: number; remaining_service_days?: number }) | null>(null);
+  const [sub, setSub] = useState<(Subscription & { total_service_days?: number; remaining_service_days?: number, skipCounts?: { meal_type: string, count: number }[] }) | null>(null);
   const [deliveries, setDeliveries] = useState<DailyDelivery[]>([]);
   const [history, setHistory] = useState<Record<string, DailyDelivery[]>>({});
   const [loading, setLoading] = useState(true);
@@ -99,8 +99,17 @@ export default function ClientHomePage() {
   const lunch  = deliveries.find((d) => d.meal_type === 'Lunch');
   const dinner = deliveries.find((d) => d.meal_type === 'Dinner');
 
+  const bSkips = sub?.skipCounts?.find(s => s.meal_type === 'Breakfast')?.count || 0;
+  const lSkips = sub?.skipCounts?.find(s => s.meal_type === 'Lunch')?.count || 0;
+  const dSkips = sub?.skipCounts?.find(s => s.meal_type === 'Dinner')?.count || 0;
+
+  const remBase = sub?.remaining_service_days ?? 0;
+  const bRem = sub?.subscribe_breakfast ? remBase + bSkips : null;
+  const lRem = sub?.subscribe_lunch !== false ? remBase + lSkips : null;
+  const dRem = sub?.subscribe_dinner !== false ? remBase + dSkips : null;
+
   const progress = sub && sub.total_service_days
-    ? Math.round(((sub.total_service_days - (sub.remaining_service_days ?? 0)) / sub.total_service_days) * 100)
+    ? Math.round(((sub.total_service_days - remBase) / sub.total_service_days) * 100)
     : 0;
 
   return (
@@ -177,7 +186,9 @@ export default function ClientHomePage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
                 <span style={{ fontSize: 11, color: 'var(--color-text-muted)', fontWeight: 600 }}>{t('sub.remainingDays')}</span>
                 <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-primary)' }}>
-                  {t('sub.daysLeft', { count: sub.remaining_service_days ?? 0 })}
+                  {bRem !== null && `🍳 ${bRem}d `}
+                  {lRem !== null && `🍱 ${lRem}d `}
+                  {dRem !== null && `🌙 ${dRem}d`}
                 </span>
               </div>
               <div style={{ background: 'var(--color-primary-light)', borderRadius: 4, height: 6 }}>
@@ -194,7 +205,7 @@ export default function ClientHomePage() {
       ) : null}
 
       {/* Today's meals */}
-      {!isExpired && (
+      {status === 'active' && (
         <>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <h2 style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)', fontFamily: 'Georgia, serif' }}>
@@ -222,7 +233,7 @@ export default function ClientHomePage() {
       )}
 
       {/* Delivery History */}
-      {!isExpired && Object.keys(history).length > 0 && (
+      {status === 'active' && Object.keys(history).length > 0 && (
         <div style={{ marginTop: 28 }}>
           <h2 style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)', fontFamily: 'Georgia, serif', marginBottom: 16 }}>
             {t('meal.deliveryHistory', { defaultValue: 'Delivery History' })}

@@ -77,7 +77,7 @@ export async function GET(
       });
     }
 
-    const csvText = rows.join('\\n');
+    const csvText = rows.join('\r\n');
 
     // Return as a downloadable file
     return new NextResponse(csvText, {

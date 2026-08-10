@@ -60,6 +60,7 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
     is_active: true,
     sub_amount: '', start_date: '', end_date: '',
     subscribe_breakfast: false, subscribe_lunch: true, subscribe_dinner: true,
+    diet_preference: 'Veg',
   });
 
   const [skipForm, setSkipForm] = useState({
@@ -186,6 +187,7 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
       subscribe_breakfast: s?.subscribe_breakfast === true,
       subscribe_lunch: s?.subscribe_lunch !== false,
       subscribe_dinner: s?.subscribe_dinner !== false,
+      diet_preference: c.diet_preference || 'Veg',
     });
     setShowEditModal(true);
   }
@@ -354,8 +356,9 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
         </Link>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <h1 style={{ fontSize: 24, fontWeight: 900, color: 'var(--color-text)', fontFamily: 'Georgia, serif', margin: 0 }}>
+            <h1 style={{ fontSize: 24, fontWeight: 900, color: 'var(--color-text)', fontFamily: 'Georgia, serif', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
               {client.name}
+              <span style={{ fontSize: 16 }}>{client.diet_preference === 'Non-Veg' ? '🔴' : '🟢'}</span>
             </h1>
             <p style={{ fontSize: 12, color: 'var(--color-text-light)', margin: '4px 0 0' }}>
               Registered on {new Date(client.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -399,6 +402,10 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
               <span style={{ ...valueStyle, fontStyle: 'italic', color: 'var(--color-accent-dark)' }}>
                 📝 {client.delivery_note ? `"${client.delivery_note}"` : 'None'}
               </span>
+            </div>
+            <div style={infoRowStyle}>
+              <span style={labelStyle}>Diet Preference</span>
+              <span style={valueStyle}>{client.diet_preference === 'Non-Veg' ? '🔴 Non-Veg' : '🟢 Veg'}</span>
             </div>
           </div>
         </div>
@@ -649,6 +656,20 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
               />
             </div>
           ))}
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <label style={fieldLabel}>Diet Preference</label>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, cursor: 'pointer' }}>
+              <input type="radio" name="edit_diet_preference" value="Veg" checked={editForm.diet_preference === 'Veg'} onChange={(e) => setEditForm(f => ({ ...f, diet_preference: 'Veg' }))} />
+              Veg 🟢
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, cursor: 'pointer' }}>
+              <input type="radio" name="edit_diet_preference" value="Non-Veg" checked={editForm.diet_preference === 'Non-Veg'} onChange={(e) => setEditForm(f => ({ ...f, diet_preference: 'Non-Veg' }))} />
+              Non-Veg 🔴
+            </label>
+          </div>
         </div>
 
         {/* Client Profile Status Checkbox */}
