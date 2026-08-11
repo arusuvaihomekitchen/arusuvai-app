@@ -36,6 +36,7 @@ interface ClientRow {
   breakfast_skips?: string;
   lunch_skips?: string;
   dinner_skips?: string;
+  diet_preference?: string;
 }
 
 export default function AdminClientsPage() {
@@ -505,6 +506,7 @@ export default function AdminClientsPage() {
             📝 List
           </button>
         </div>
+      </div>
       </div>
 
       {/* Filter Tabs */}

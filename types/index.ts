@@ -64,6 +64,8 @@ export interface DailyDelivery {
   meal_type: MealType;
   status: DeliveryStatus;
   skip_request_id: string | null;
+  skip_req_id?: string;
+  skip_status?: string;
   assigned_at: string | null;
   delivered_at: string | null;
   delivery_note: string;
