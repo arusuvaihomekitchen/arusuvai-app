@@ -315,7 +315,7 @@ export default function AdminTodayPage() {
                           onChange={() => toggleLocationSelect(loc)}
                           style={{ accentColor: 'var(--color-primary)' }}
                         />
-                        Select All in {loc}
+                        Select All
                       </label>
                     </div>
                     {displayRows.map((d) => (
@@ -435,9 +435,7 @@ function DeliveryRow({
               )}
             </div>
           </div>
-          <div style={{ fontSize: 12, color: 'var(--color-text-light)', marginBottom: 4 }}>
-            📍 {d.location}
-          </div>
+
           {d.delivery_note_client && (
             <div style={{ fontSize: 11, color: 'var(--color-accent-dark)', fontStyle: 'italic', marginBottom: 6 }}>
               📝 &quot;{d.delivery_note_client}&quot;
