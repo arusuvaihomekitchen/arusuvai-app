@@ -18,6 +18,7 @@ export default function AdminLayoutInner({ name, children }: { name: string; chi
   const router = useRouter();
   const pathname = usePathname();
   const [signingOut, setSigningOut] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Change password states
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -73,7 +74,7 @@ export default function AdminLayoutInner({ name, children }: { name: string; chi
   return (
     <div style={{ minHeight: '100vh', background: 'var(--color-bg)', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
-      <header style={{
+      <header className="mobile-unstick" style={{
         background: 'white',
         borderBottom: '1px solid var(--color-border)',
         padding: '12px 20px',
@@ -97,7 +98,8 @@ export default function AdminLayoutInner({ name, children }: { name: string; chi
             <div style={{ fontSize: 17, fontWeight: 900, color: 'var(--color-primary)', fontFamily: 'Georgia, serif' }}>Arusuvai</div>
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        {/* Desktop actions */}
+        <div className="mobile-hide" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 12, color: 'var(--color-text-muted)', fontWeight: 600 }}>{name}</span>
           <button
             onClick={() => {
@@ -129,10 +131,50 @@ export default function AdminLayoutInner({ name, children }: { name: string; chi
             {t('auth.signOut')}
           </button>
         </div>
+
+        {/* Mobile menu toggle */}
+        <div className="desktop-hide" style={{ position: 'relative' }}>
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', padding: '0 8px' }}
+          >
+            ☰
+          </button>
+          {isMobileMenuOpen && (
+            <div style={{
+              position: 'absolute', top: '100%', right: 0, marginTop: 8,
+              background: 'white', borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+              border: '1px solid var(--color-border)', padding: '12px',
+              display: 'flex', flexDirection: 'column', gap: 8, width: 200, zIndex: 50
+            }}>
+              <span style={{ fontSize: 13, color: 'var(--color-text-muted)', fontWeight: 700, paddingBottom: 8, borderBottom: '1px solid var(--color-border)' }}>{name}</span>
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setPwError('');
+                  setPwSuccess('');
+                  setNewPassword('');
+                  setConfirmPassword('');
+                  setShowPasswordModal(true);
+                }}
+                style={{ background: 'none', border: 'none', textAlign: 'left', fontSize: 13, fontWeight: 600, padding: '8px 0', cursor: 'pointer', color: 'var(--color-text)' }}
+              >
+                🔑 Change Password
+              </button>
+              <button
+                onClick={handleSignOut}
+                disabled={signingOut}
+                style={{ background: 'none', border: 'none', textAlign: 'left', fontSize: 13, fontWeight: 600, padding: '8px 0', cursor: 'pointer', color: 'var(--color-error)' }}
+              >
+                🚪 {t('auth.signOut')}
+              </button>
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Nav tabs — horizontal scroll */}
-      <nav style={{
+      <nav className="mobile-nav-sticky" style={{
         background: 'white',
         borderBottom: '1px solid var(--color-border)',
         display: 'flex', padding: '6px 8px', gap: 4,

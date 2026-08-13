@@ -14,6 +14,7 @@ export default function Modal({ open, onClose, children, maxWidth = 360 }: Modal
 
   return (
     <div
+      className="mobile-sheet-overlay"
       style={{
         position: 'fixed',
         inset: 0,
@@ -29,6 +30,7 @@ export default function Modal({ open, onClose, children, maxWidth = 360 }: Modal
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
+        className="mobile-sheet-content"
         style={{
           background: 'white',
           borderRadius: 24,

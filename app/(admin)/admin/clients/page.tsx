@@ -441,7 +441,7 @@ export default function AdminClientsPage() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 14 }}>
+          <div className="mobile-sticky-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 14 }}>
             <Button variant="ghost" onClick={() => setShowAddForm(false)}>Cancel</Button>
             <Button loading={saving} onClick={addClient}>Register Client</Button>
           </div>
@@ -575,6 +575,12 @@ export default function AdminClientsPage() {
                   const status = getSubStatus(c);
                   const rem = remainingDays(c);
                   const isExpired = status === 'expired';
+                  const adjustedDates = getAdjustedEndDates(c);
+                  let maxEndDate: Date | null = c.end_date ? new Date(c.end_date) : null;
+                  for (const d of Object.values(adjustedDates)) {
+                    if (!maxEndDate || d > maxEndDate) maxEndDate = d;
+                  }
+                  
                   const meals = [
                     c.subscribe_breakfast === true ? 'Breakfast 🍳' : null,
                     c.subscribe_lunch !== false ? 'Lunch 🍱' : null,
@@ -610,13 +616,13 @@ export default function AdminClientsPage() {
                       <td style={tdStyle}>
                         {isExpired ? (
                           <div style={{ fontSize: 11, color: 'var(--color-error)', fontWeight: 600 }}>
-                            {c.end_date ? `Ended ${new Date(c.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}` : 'No sub'}
+                            {maxEndDate ? `Ended ${maxEndDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}` : 'No sub'}
                           </div>
                         ) : (
                           <>
                             <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-primary)' }}>{rem} days left</div>
                             <div style={{ fontSize: 10, color: 'var(--color-text-light)', marginTop: 2 }}>
-                              Ends {c.end_date ? new Date(c.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                              Ends {maxEndDate ? maxEndDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
                             </div>
                           </>
                         )}
@@ -653,6 +659,11 @@ export default function AdminClientsPage() {
             const status = getSubStatus(c);
             const rem = remainingDays(c);
             const isExpired = status === 'expired';
+            const adjustedDates = getAdjustedEndDates(c);
+            let maxEndDate: Date | null = c.end_date ? new Date(c.end_date) : null;
+            for (const d of Object.values(adjustedDates)) {
+              if (!maxEndDate || d > maxEndDate) maxEndDate = d;
+            }
 
             return (
               <div key={c.id} style={{
@@ -684,7 +695,7 @@ export default function AdminClientsPage() {
 
                 {isExpired ? (
                   <div style={{ background: '#FEF2F2', borderRadius: 10, padding: '8px 12px', fontSize: 11, color: '#DC2626', fontWeight: 600 }}>
-                    {c.end_date ? `Subscription ended ${new Date(c.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}` : 'No active subscription'}
+                    {maxEndDate ? `Subscription ended ${maxEndDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}` : 'No active subscription'}
                   </div>
                 ) : (
                   <div style={{ background: 'var(--color-bg)', borderRadius: 10, padding: '8px 12px', fontSize: 11 }}>
@@ -695,7 +706,7 @@ export default function AdminClientsPage() {
                         c.subscribe_lunch !== false ? 'Lunch 🍱' : null,
                         c.subscribe_dinner !== false ? 'Dinner 🌙' : null,
                       ].filter(Boolean).join(' + ') || 'None' },
-                      { label: 'Expires',       value: c.end_date ? new Date(c.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—' },
+                      { label: 'Expires',       value: maxEndDate ? maxEndDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—' },
                       { label: 'Days left',     value: `${rem} days` },
                     ].map(({ label, value }) => (
                       <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>

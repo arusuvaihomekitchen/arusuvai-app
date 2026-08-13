@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Badge from '@/components/ui/Badge';
-import { formatDate, formatToday, getSubscriptionStatus } from '@/lib/dateUtils';
+import { formatDate, formatToday, getSubscriptionStatus, addServiceDays } from '@/lib/dateUtils';
 import type { Subscription, DailyDelivery } from '@/types';
 import { useTranslation } from '@/i18n';
 
@@ -112,6 +112,18 @@ export default function ClientHomePage() {
     ? Math.round(((sub.total_service_days - remBase) / sub.total_service_days) * 100)
     : 0;
 
+  let maxEndDate: Date | null = sub?.end_date ? new Date(sub.end_date) : null;
+  if (sub && maxEndDate) {
+    const dates: Date[] = [];
+    if (sub.subscribe_breakfast) dates.push(addServiceDays(maxEndDate, bSkips));
+    if (sub.subscribe_lunch !== false) dates.push(addServiceDays(maxEndDate, lSkips));
+    if (sub.subscribe_dinner !== false) dates.push(addServiceDays(maxEndDate, dSkips));
+    
+    for (const d of dates) {
+      if (d > maxEndDate) maxEndDate = d;
+    }
+  }
+
   return (
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
       {/* Subscription card */}
@@ -126,7 +138,7 @@ export default function ClientHomePage() {
           </div>
           <div style={{ fontSize: 13, color: '#7F1D1D', lineHeight: 1.5 }}>
             {sub
-              ? t('sub.endedOn', { date: formatDate(sub.end_date) })
+              ? t('sub.endedOn', { date: maxEndDate ? formatDate(maxEndDate.toISOString()) : formatDate(sub.end_date) })
               : t('sub.noActive')
             } {t('sub.renewPrompt')}
           </div>
@@ -171,7 +183,7 @@ export default function ClientHomePage() {
             <div style={{ display: 'flex', gap: 20, marginTop: 16 }}>
               {[
                 { label: t('common.start'),        value: formatDate(sub.start_date) },
-                { label: t('common.end'),          value: formatDate(sub.end_date) },
+                { label: t('common.end'),          value: maxEndDate ? formatDate(maxEndDate.toISOString()) : formatDate(sub.end_date) },
                 { label: t('common.serviceDays'), value: t('sub.serviceDays', { count: sub.total_service_days ?? 0 }) },
               ].map(({ label, value }) => (
                 <div key={label}>

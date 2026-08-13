@@ -274,7 +274,7 @@ export default function AdminTodayPage() {
 
       {/* Bulk assign bar */}
       {selected.size > 0 && (
-        <div style={{
+        <div className="mobile-floating-bar" style={{
           background: 'var(--color-primary-light)', border: '1px solid #A8D4A8',
           borderRadius: 12, padding: '12px 16px', marginBottom: 12,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -306,14 +306,16 @@ export default function AdminTodayPage() {
 
                 return (
                   <div key={loc} style={{ marginBottom: 16 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, padding: '0 4px' }}>
-                      <h4 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: 'var(--color-text)' }}>📍 {loc}</h4>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: 'var(--color-primary)', cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8, padding: '0 4px' }}>
+                      <h4 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: 'var(--color-text)', flex: 1, marginRight: 12, lineHeight: 1.4 }}>
+                        📍 {loc}
+                      </h4>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: 'var(--color-primary)', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
                         <input 
                           type="checkbox" 
                           checked={allSelected} 
                           onChange={() => toggleLocationSelect(loc)}
-                          style={{ accentColor: 'var(--color-primary)' }}
+                          style={{ accentColor: 'var(--color-primary)', marginTop: 2 }}
                         />
                         Select All
                       </label>
@@ -417,18 +419,19 @@ function DeliveryRow({
           type="checkbox"
           checked={selected}
           onChange={onToggle}
-          style={{ marginTop: 4, accentColor: 'var(--color-primary)', width: 16, height: 16, cursor: 'pointer' }}
+          className="touch-target"
+          style={{ marginTop: 4, accentColor: 'var(--color-primary)', cursor: 'pointer' }}
         />
         <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6, marginBottom: 4 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="mobile-stack" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6, marginBottom: 4 }}>
+            <div className="mobile-stack" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 6 }}>
                 {d.client_name}
                 <span style={{ fontSize: 10 }}>{(d as any).diet_preference === 'Non-Veg' ? '🔴' : '🟢'}</span>
               </span>
               <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>📞 {d.phone_number}</span>
             </div>
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            <div className="mobile-stack-full" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               {hasPendingSkip && <Badge variant="pending">⚠ Skip Requested</Badge>}
               {d.status === 'assigned' && d.delivery_person_name && (
                 <Badge variant="assigned">Assigned — {d.delivery_person_name}</Badge>
@@ -441,7 +444,7 @@ function DeliveryRow({
               📝 &quot;{d.delivery_note_client}&quot;
             </div>
           )}
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <div className="mobile-btn-stack" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {hasPendingSkip && (
               <>
                 <button onClick={onApproveSkip} style={approveStyle}>✓ Approve Skip</button>
