@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import pool from '@/lib/db';
-import { todayIST } from '@/lib/dateUtils';
+import { todayIST, addServiceDays } from '@/lib/dateUtils';
 import type { ApiResponse } from '@/types';
 
 export async function GET(req: NextRequest) {
@@ -19,18 +19,31 @@ export async function GET(req: NextRequest) {
     try {
       await db.query('BEGIN');
 
-      // Get all active clients with valid subscription for this date
+      // Get all active clients whose subscription started on or before this date
       const clients = await db.query(
-        `SELECT u.id, u.name, s.subscribe_breakfast, s.subscribe_lunch, s.subscribe_dinner
+        `SELECT u.id, u.name, s.end_date, s.start_date, s.subscribe_breakfast, s.subscribe_lunch, s.subscribe_dinner
          FROM users u
          JOIN subscriptions s ON s.client_id = u.id
          WHERE u.role = 'client'
            AND u.is_active = true
            AND s.start_date <= $1
-           AND s.end_date >= $1
            AND s.status = 'active'`,
         [date]
       );
+
+      // Fetch skip counts for these clients to adjust end_date
+      const skipCounts = await db.query(
+        `SELECT sr.client_id, sr.meal_type, COUNT(*) as skips
+         FROM skip_requests sr
+         JOIN subscriptions s ON s.client_id = sr.client_id
+         WHERE sr.status = 'approved' AND sr.date >= s.start_date
+         GROUP BY sr.client_id, sr.meal_type`
+      );
+
+      const skipsMap = new Map<string, number>();
+      for (const row of skipCounts.rows) {
+        skipsMap.set(`${row.client_id}-${row.meal_type}`, parseInt(row.skips, 10));
+      }
 
       // Fetch all approved skips for this date
       const skipsRes = await db.query(
@@ -43,26 +56,38 @@ export async function GET(req: NextRequest) {
         approvedSkips.set(`${row.client_id}-${row.meal_type}`, row.id);
       }
 
+      // Determine active pairs for this date
+      const activePairs: { client_id: string; meal_type: string; skipId: string | null }[] = [];
+      for (const c of clients.rows) {
+        const baseEnd = new Date(c.end_date);
+
+        const checkMeal = (meal: string, subscribed: boolean) => {
+          if (subscribed) {
+            const skips = skipsMap.get(`${c.id}-${meal}`) || 0;
+            const adjustedEnd = addServiceDays(baseEnd, skips);
+            if (new Date(date) <= adjustedEnd) {
+              const skipId = approvedSkips.get(`${c.id}-${meal}`) || null;
+              activePairs.push({ client_id: c.id, meal_type: meal, skipId });
+            }
+          }
+        };
+
+        checkMeal('Breakfast', c.subscribe_breakfast === true);
+        checkMeal('Lunch', c.subscribe_lunch !== false);
+        checkMeal('Dinner', c.subscribe_dinner !== false);
+      }
+
       // 1. Insert missing active deliveries in batch
       const insertValues: any[] = [];
       let placeholderIdx = 1;
       const insertParts: string[] = [];
 
-      for (const c of clients.rows) {
-        const meals = [];
-        if (c.subscribe_breakfast === true) meals.push('Breakfast');
-        if (c.subscribe_lunch !== false) meals.push('Lunch');
-        if (c.subscribe_dinner !== false) meals.push('Dinner');
+      for (const pair of activePairs) {
+        const status = pair.skipId ? 'skipped' : 'pending';
+        const deliveryId = `del_${randomUUID().replace(/-/g, '').slice(0, 12)}`;
 
-        for (const meal of meals) {
-          const key = `${c.id}-${meal}`;
-          const skipId = approvedSkips.get(key) || null;
-          const status = skipId ? 'skipped' : 'pending';
-          const deliveryId = `del_${randomUUID().replace(/-/g, '').slice(0, 12)}`;
-
-          insertParts.push(`($${placeholderIdx++}, $${placeholderIdx++}, $${placeholderIdx++}, $${placeholderIdx++}, $${placeholderIdx++}, $${placeholderIdx++})`);
-          insertValues.push(deliveryId, c.id, date, meal, status, skipId);
-        }
+        insertParts.push(`($${placeholderIdx++}, $${placeholderIdx++}, $${placeholderIdx++}, $${placeholderIdx++}, $${placeholderIdx++}, $${placeholderIdx++})`);
+        insertValues.push(deliveryId, pair.client_id, date, pair.meal_type, status, pair.skipId);
       }
 
       if (insertParts.length > 0) {
@@ -76,10 +101,8 @@ export async function GET(req: NextRequest) {
 
       // 2. Remove invalid deliveries in batch
       const activeKeys = new Set<string>();
-      for (const c of clients.rows) {
-        if (c.subscribe_breakfast === true) activeKeys.add(`${c.id}-Breakfast`);
-        if (c.subscribe_lunch !== false) activeKeys.add(`${c.id}-Lunch`);
-        if (c.subscribe_dinner !== false) activeKeys.add(`${c.id}-Dinner`);
+      for (const pair of activePairs) {
+        activeKeys.add(`${pair.client_id}-${pair.meal_type}`);
       }
 
       const existing = await db.query(

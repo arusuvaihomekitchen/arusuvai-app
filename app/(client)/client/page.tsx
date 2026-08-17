@@ -92,25 +92,9 @@ export default function ClientHomePage() {
 
   if (loading) return <LoadingSkeleton />;
 
-  const status = sub ? getSubscriptionStatus(sub) : 'expired';
-  const isExpired = !sub || status === 'expired';
-
-  const breakfast = deliveries.find((d) => d.meal_type === 'Breakfast');
-  const lunch  = deliveries.find((d) => d.meal_type === 'Lunch');
-  const dinner = deliveries.find((d) => d.meal_type === 'Dinner');
-
   const bSkips = sub?.skipCounts?.find(s => s.meal_type === 'Breakfast')?.count || 0;
   const lSkips = sub?.skipCounts?.find(s => s.meal_type === 'Lunch')?.count || 0;
   const dSkips = sub?.skipCounts?.find(s => s.meal_type === 'Dinner')?.count || 0;
-
-  const remBase = sub?.remaining_service_days ?? 0;
-  const bRem = sub?.subscribe_breakfast ? remBase + bSkips : null;
-  const lRem = sub?.subscribe_lunch !== false ? remBase + lSkips : null;
-  const dRem = sub?.subscribe_dinner !== false ? remBase + dSkips : null;
-
-  const progress = sub && sub.total_service_days
-    ? Math.round(((sub.total_service_days - remBase) / sub.total_service_days) * 100)
-    : 0;
 
   let maxEndDate: Date | null = sub?.end_date ? new Date(sub.end_date) : null;
   if (sub && maxEndDate) {
@@ -123,6 +107,16 @@ export default function ClientHomePage() {
       if (d > maxEndDate) maxEndDate = d;
     }
   }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const isExpired = !sub || (maxEndDate ? maxEndDate < today : true);
+
+  const breakfast = deliveries.find((d) => d.meal_type === 'Breakfast');
+  const lunch  = deliveries.find((d) => d.meal_type === 'Lunch');
+  const dinner = deliveries.find((d) => d.meal_type === 'Dinner');
+
+
 
   return (
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
@@ -143,13 +137,23 @@ export default function ClientHomePage() {
             } {t('sub.renewPrompt')}
           </div>
         </div>
-      ) : sub ? (
-        <div style={{
-          background: 'white', border: '1.5px solid var(--color-border)',
-          borderRadius: 20, padding: 20, marginBottom: 16,
-          position: 'relative', overflow: 'hidden',
-          boxShadow: '0 2px 12px rgba(44,94,46,0.08)',
-        }}>
+      ) : sub ? (() => {
+          const remBase = sub?.remaining_service_days ?? 0;
+          const bRem = sub?.subscribe_breakfast ? remBase + bSkips : null;
+          const lRem = sub?.subscribe_lunch !== false ? remBase + lSkips : null;
+          const dRem = sub?.subscribe_dinner !== false ? remBase + dSkips : null;
+
+          const progress = sub && sub.total_service_days
+            ? Math.round(((sub.total_service_days - remBase) / sub.total_service_days) * 100)
+            : 0;
+
+          return (
+            <div style={{
+              background: 'white', border: '1.5px solid var(--color-border)',
+              borderRadius: 20, padding: 20, marginBottom: 16,
+              position: 'relative', overflow: 'hidden',
+              boxShadow: '0 2px 12px rgba(44,94,46,0.08)',
+            }}>
           {/* Left accent stripe */}
           <div style={{
             position: 'absolute', left: 0, top: 0, bottom: 0,
@@ -217,7 +221,7 @@ export default function ClientHomePage() {
       ) : null}
 
       {/* Today's meals */}
-      {status === 'active' && (
+      {(!isExpired && sub) && (
         <>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <h2 style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)', fontFamily: 'Georgia, serif' }}>
