@@ -25,7 +25,7 @@ function calculateEndDate(startDateStr: string, serviceDays: number): string {
 }
 
 interface ClientRow {
-  id: string; name: string; phone_number: string; location: string;
+  id: string; name: string; phone_number: string; location: string; pincode?: string;
   username: string; delivery_note: string; is_active: boolean;
   sub_id?: string; sub_amount?: number; start_date?: string;
   end_date?: string; sub_status?: string; sub_type?: string;
@@ -63,7 +63,7 @@ export default function AdminClientsPage() {
   };
 
   const [form, setForm] = useState({
-    name: '', phone_number: '', location: '',
+    name: '', phone_number: '', location: '', pincode: '',
     password: '', delivery_note: '',
     sub_amount: '', sub_start: '', sub_end: '',
     subscribe_breakfast: false,
@@ -201,6 +201,7 @@ export default function AdminClientsPage() {
           name: form.name,
           phone_number: form.phone_number,
           location: form.location,
+          pincode: form.pincode,
           password: form.password,
           delivery_note: form.delivery_note,
           subscription: form.sub_amount && form.sub_start && form.sub_end ? {
@@ -218,7 +219,7 @@ export default function AdminClientsPage() {
       if (data.success) {
         setShowAddForm(false);
         setForm({
-          name:'', phone_number:'', location:'', password:'', delivery_note:'',
+          name:'', phone_number:'', location:'', pincode:'', password:'', delivery_note:'',
           sub_amount:'', sub_start:'', sub_end:'',
           subscribe_breakfast: false,
           subscribe_lunch: true, subscribe_dinner: true,
@@ -316,6 +317,18 @@ export default function AdminClientsPage() {
                 />
               </div>
             ))}
+            <div style={{ gridColumn: '1 / -1' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={fieldLabel}>Location / Area *</label>
+                  <input placeholder="e.g. Anna Nagar" value={form.location} onChange={(e) => setForm(f => ({ ...f, location: e.target.value }))} style={inputSm} />
+                </div>
+                <div>
+                  <label style={fieldLabel}>Pincode *</label>
+                  <input placeholder="e.g. 600040" value={form.pincode} onChange={(e) => setForm(f => ({ ...f, pincode: e.target.value }))} style={inputSm} required />
+                </div>
+              </div>
+            </div>
             <div style={{ gridColumn: '1 / -1', marginTop: 8 }}>
               <label style={fieldLabel}>Diet Preference</label>
               <div style={{ display: 'flex', gap: 12 }}>
@@ -450,7 +463,7 @@ export default function AdminClientsPage() {
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
         <input
-          placeholder="🔍 Search by name or location…"
+          placeholder="🔍 Search by name, location or pincode…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           style={{ ...inputSm, flex: 1, minWidth: 200 }}
@@ -564,6 +577,7 @@ export default function AdminClientsPage() {
                   <th style={{ ...thStyle, width: 50 }}>S.No</th>
                   <th style={thStyle}>Client Details</th>
                   <th style={thStyle}>Location</th>
+                  <th style={thStyle}>Pincode</th>
                   <th style={thStyle}>Plan & Meals</th>
                   <th style={thStyle}>Status</th>
                   <th style={thStyle}>Validity</th>
@@ -599,8 +613,11 @@ export default function AdminClientsPage() {
                         </div>
                         <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 2 }}>📞 {c.phone_number || '—'}</div>
                       </td>
-                      <td style={tdStyle}>
-                        <div style={{ fontSize: 13, color: 'var(--color-text)' }}>📍 {c.location || '—'}</div>
+                      <td style={{ ...tdStyle, color: 'var(--color-text-muted)', fontSize: 13 }}>
+                        {c.location || '—'}
+                      </td>
+                      <td style={{ ...tdStyle, color: 'var(--color-text-muted)', fontSize: 13 }}>
+                        {c.pincode || '—'}
                       </td>
                       <td style={tdStyle}>
                         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>

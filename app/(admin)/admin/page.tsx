@@ -148,7 +148,7 @@ export default function AdminTodayPage() {
   const pendingSkips = filtered.filter((d) => d.skip_req_id && d.skip_status === 'pending').length;
 
   const groupedToDeliver = toDeliver.reduce((acc, d) => {
-    const loc = d.location || 'Unknown Location';
+    const loc = d.pincode || d.location || 'Unknown Pincode/Location';
     if (!acc[loc]) acc[loc] = [];
     acc[loc].push(d);
     return acc;
@@ -477,7 +477,7 @@ function CompletedRow({ delivery: d, onRestore }: { delivery: DailyDelivery; onR
           {d.client_name}
           <span style={{ fontSize: 9 }}>{(d as any).diet_preference === 'Non-Veg' ? '🔴' : '🟢'}</span>
         </span>
-        <span style={{ fontSize: 11, color: 'var(--color-text-muted)', marginLeft: 8 }}>📍 {d.location}</span>
+        <span style={{ fontSize: 11, color: 'var(--color-text-muted)', marginLeft: 8 }}>📍 {d.location || ''} {d.pincode ? `(${d.pincode})` : ''}</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ textAlign: 'right' }}>

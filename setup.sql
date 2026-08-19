@@ -28,6 +28,7 @@ CREATE TABLE users (
     role             VARCHAR(20)  NOT NULL
                        CHECK (role IN ('client', 'admin', 'delivery_person')),
     location         VARCHAR(255),          -- delivery area / address (clients)
+    pincode          VARCHAR(20),           -- grouping area for deliveries
     diet_preference  VARCHAR(20)  DEFAULT 'Veg', -- Veg or Non-Veg
     username         VARCHAR(50)  UNIQUE NOT NULL,
     password_hash    VARCHAR(255) NOT NULL,

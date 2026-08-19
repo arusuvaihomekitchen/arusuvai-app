@@ -131,6 +131,7 @@ export async function POST(req: NextRequest) {
               u.name as client_name,
               u.phone_number,
               u.location,
+              u.pincode,
               u.delivery_note as delivery_note_client,
               dp.name as delivery_person_name
        FROM daily_deliveries dd

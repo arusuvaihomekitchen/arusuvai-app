@@ -56,7 +56,7 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
   });
 
   const [editForm, setEditForm] = useState({
-    name: '', phone_number: '', location: '', password: '', delivery_note: '',
+    name: '', phone_number: '', location: '', pincode: '', password: '', delivery_note: '',
     is_active: true,
     sub_amount: '', start_date: '', end_date: '',
     subscribe_breakfast: false, subscribe_lunch: true, subscribe_dinner: true,
@@ -178,6 +178,7 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
       name: c.name,
       phone_number: c.phone_number || '',
       location: c.location || '',
+      pincode: c.pincode || '',
       password: '',
       delivery_note: c.delivery_note || '',
       is_active: c.is_active !== false,
@@ -395,7 +396,7 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
             </div>
             <div style={infoRowStyle}>
               <span style={labelStyle}>Delivery Location</span>
-              <span style={valueStyle}>📍 {client.location || '—'}</span>
+              <span style={valueStyle}>📍 {client.location || '—'} {client.pincode ? `(${client.pincode})` : ''}</span>
             </div>
             <div style={infoRowStyle}>
               <span style={labelStyle}>Delivery Note</span>
@@ -642,6 +643,7 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
             { label: 'Full Name *', key: 'name', type: 'text' },
             { label: 'Phone Number *', key: 'phone_number', type: 'text' },
             { label: 'Location / Area', key: 'location', type: 'text' },
+            { label: 'Pincode *', key: 'pincode', type: 'text' },
             { label: 'Reset Password (leave blank to keep current)', key: 'password', type: 'password', placeholder: 'Enter new password to reset' },
             { label: 'Delivery Note', key: 'delivery_note', type: 'text' },
           ].map(({ label, key, type, placeholder }) => (

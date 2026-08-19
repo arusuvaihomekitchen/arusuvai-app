@@ -15,6 +15,7 @@ export interface User {
   phone_number: string;
   role: Role;
   location: string;
+  pincode?: string;
   username: string;
   delivery_note: string;
   is_active: boolean;
@@ -57,6 +58,7 @@ export interface DailyDelivery {
   client_name?: string;
   phone_number?: string;
   location?: string;
+  pincode?: string;
   delivery_note_client?: string;
   delivery_person_id: string | null;
   delivery_person_name?: string;
@@ -93,6 +95,7 @@ export interface SessionUser {
   name: string;
   role: Role;
   location: string;
+  pincode?: string;
 }
 
 export interface ApiResponse<T = unknown> {
