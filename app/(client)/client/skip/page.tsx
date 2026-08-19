@@ -5,6 +5,7 @@ import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
 import type { SkipRequest } from '@/types';
+import { formatDate, addServiceDays } from '@/lib/dateUtils';
 import { useTranslation } from '@/i18n';
 
 type MealType = 'Breakfast' | 'Lunch' | 'Dinner';
@@ -59,7 +60,8 @@ export default function SkipMealPage() {
 
   // Define date limits derived from subscription
   const minDateStr = sub && sub.start_date.slice(0, 10) > todayStr() ? sub.start_date.slice(0, 10) : todayStr();
-  const maxDateStr = sub ? sub.end_date.slice(0, 10) : '';
+  const skipsCount = requests.filter(r => r.status === 'approved').length;
+  const maxDateStr = sub ? addServiceDays(sub.end_date, skipsCount).toISOString().slice(0, 10) : '';
 
   useEffect(() => {
     fetch('/api/client/skip-requests')

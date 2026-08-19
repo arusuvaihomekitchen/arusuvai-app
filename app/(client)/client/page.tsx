@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Badge from '@/components/ui/Badge';
-import { formatDate, formatToday, getSubscriptionStatus, addServiceDays } from '@/lib/dateUtils';
+import { formatDate, formatToday, getSubscriptionStatus, addServiceDays, countServiceDays } from '@/lib/dateUtils';
 import type { Subscription, DailyDelivery } from '@/types';
 import { useTranslation } from '@/i18n';
 
@@ -138,13 +138,23 @@ export default function ClientHomePage() {
           </div>
         </div>
       ) : sub ? (() => {
-          const remBase = sub?.remaining_service_days ?? 0;
-          const bRem = sub?.subscribe_breakfast ? remBase + bSkips : null;
-          const lRem = sub?.subscribe_lunch !== false ? remBase + lSkips : null;
-          const dRem = sub?.subscribe_dinner !== false ? remBase + dSkips : null;
+          const fromDate = (sub.start_date && new Date(sub.start_date) > today) ? new Date(sub.start_date) : today;
+          
+          const getRem = (subscribed: boolean, skips: number) => {
+            if (!subscribed || !sub.end_date) return null;
+            const end = addServiceDays(new Date(sub.end_date), skips);
+            if (end < today) return 0;
+            return countServiceDays(fromDate, end);
+          };
+
+          const bRem = getRem(sub?.subscribe_breakfast === true, bSkips);
+          const lRem = getRem(sub?.subscribe_lunch !== false, lSkips);
+          const dRem = getRem(sub?.subscribe_dinner !== false, dSkips);
+
+          const maxRem = Math.max(bRem || 0, lRem || 0, dRem || 0);
 
           const progress = sub && sub.total_service_days
-            ? Math.round(((sub.total_service_days - remBase) / sub.total_service_days) * 100)
+            ? Math.round(((sub.total_service_days - maxRem) / sub.total_service_days) * 100)
             : 0;
 
           return (
@@ -218,7 +228,8 @@ export default function ClientHomePage() {
             </div>
           </div>
         </div>
-      ) : null}
+        );
+      })() : null}
 
       {/* Today's meals */}
       {(!isExpired && sub) && (

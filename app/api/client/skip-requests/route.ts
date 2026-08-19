@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import pool from '@/lib/db';
 import { getSession } from '@/lib/session';
+import { addServiceDays } from '@/lib/dateUtils';
 import type { ApiResponse } from '@/types';
 
 export async function GET() {
@@ -39,7 +40,8 @@ export async function POST(req: NextRequest) {
 
     // Validate subscription range
     const subRes = await pool.query(
-      `SELECT start_date, end_date FROM subscriptions
+      `SELECT start_date, end_date, subscribe_breakfast, subscribe_lunch, subscribe_dinner 
+       FROM subscriptions
        WHERE client_id = $1 AND status = 'active'
        ORDER BY created_at DESC LIMIT 1`,
       [session.id]
@@ -52,12 +54,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { start_date, end_date } = subRes.rows[0];
+    const sub = subRes.rows[0];
+    
+    // Calculate the extended end date based on skips
+    const skipCountsRes = await pool.query(
+      `SELECT COUNT(*) as count 
+       FROM skip_requests 
+       WHERE client_id = $1 AND meal_type = $2 AND status = 'approved'`,
+      [session.id, meal_type]
+    );
+    const skips = parseInt(skipCountsRes.rows[0].count, 10);
+    const baseEnd = new Date(sub.end_date);
+    const maxEnd = addServiceDays(baseEnd, skips);
     
     // Parse dates to check range
     // Formatted dates as YYYY-MM-DD to avoid timezone shifting
-    const startStr = typeof start_date === 'string' ? start_date.slice(0, 10) : new Date(start_date).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
-    const endStr = typeof end_date === 'string' ? end_date.slice(0, 10) : new Date(end_date).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    const startStr = typeof sub.start_date === 'string' ? sub.start_date.slice(0, 10) : new Date(sub.start_date).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    const endStr = maxEnd.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
     
     if (date < startStr || date > endStr) {
       return NextResponse.json<ApiResponse>(
