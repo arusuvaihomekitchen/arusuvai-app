@@ -52,7 +52,7 @@ export default function DeliveryTodayPage() {
     }).catch(() => {});
   }, []);
 
-  async function markStatus(id: string, status: 'delivered' | 'not_available') {
+  async function markStatus(id: string, status: 'delivered' | 'not_available' | 'assigned') {
     setUpdating(id);
     await fetch(`/api/delivery/deliveries/${id}`, {
       method: 'PATCH',
@@ -276,14 +276,28 @@ export default function DeliveryTodayPage() {
                       <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>📍 {d.location}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <span style={{
-                        background: d.status === 'delivered' ? '#22C55E' : 'var(--color-accent)',
-                        color: 'white',
-                        borderRadius: 20, padding: '3px 10px',
-                        fontSize: 11, fontWeight: 700,
-                      }}>
-                        {d.status === 'delivered' ? '✓ Done' : 'Not at Site'}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{
+                          background: d.status === 'delivered' ? '#22C55E' : 'var(--color-accent)',
+                          color: 'white',
+                          borderRadius: 20, padding: '3px 10px',
+                          fontSize: 11, fontWeight: 700,
+                        }}>
+                          {d.status === 'delivered' ? '✓ Done' : 'Not at Site'}
+                        </span>
+                        {d.status === 'not_available' && (
+                          <button
+                            onClick={() => markStatus(d.id, 'assigned')}
+                            disabled={updating === d.id}
+                            style={{
+                              background: 'transparent', color: 'var(--color-text-muted)', border: 'none',
+                              fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: '4px', textDecoration: 'underline'
+                            }}
+                          >
+                            {updating === d.id ? '…' : 'Undo'}
+                          </button>
+                        )}
+                      </div>
                       {d.delivered_at && (
                         <div style={{ fontSize: 10, color: 'var(--color-text-light)', marginTop: 2 }}>
                           {new Date(d.delivered_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}
