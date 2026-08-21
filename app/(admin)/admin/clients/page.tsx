@@ -63,7 +63,7 @@ export default function AdminClientsPage() {
   };
 
   const [form, setForm] = useState({
-    name: '', phone_number: '', location: '', pincode: '',
+    name: '', phone_number: '', location: '', pincode: '', gmap_link: '',
     password: '', delivery_note: '',
     sub_amount: '', sub_start: '', sub_end: '',
     subscribe_breakfast: false,
@@ -202,6 +202,7 @@ export default function AdminClientsPage() {
           phone_number: form.phone_number,
           location: form.location,
           pincode: form.pincode,
+          gmap_link: form.gmap_link,
           password: form.password,
           delivery_note: form.delivery_note,
           subscription: form.sub_amount && form.sub_start && form.sub_end ? {
@@ -219,7 +220,7 @@ export default function AdminClientsPage() {
       if (data.success) {
         setShowAddForm(false);
         setForm({
-          name:'', phone_number:'', location:'', pincode:'', password:'', delivery_note:'',
+          name:'', phone_number:'', location:'', pincode:'', gmap_link:'', password:'', delivery_note:'',
           sub_amount:'', sub_start:'', sub_end:'',
           subscribe_breakfast: false,
           subscribe_lunch: true, subscribe_dinner: true,
@@ -236,13 +237,19 @@ export default function AdminClientsPage() {
 
   const [statusFilter, setStatusFilter] = useState<'all' | 'active_sub' | 'expired_sub' | 'expiring_soon' | 'deactivated'>('all');
   const [sortMode, setSortMode] = useState<'name' | 'validityAsc' | 'validityDesc'>('name');
+  const [mealFilter, setMealFilter] = useState<'all' | 'breakfast' | 'lunch' | 'dinner'>('all');
 
   const filtered = clients.filter((c) => {
     const matchesSearch =
       c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.location?.toLowerCase().includes(search.toLowerCase());
+      c.location?.toLowerCase().includes(search.toLowerCase()) ||
+      c.pincode?.toLowerCase().includes(search.toLowerCase());
 
     if (!matchesSearch) return false;
+
+    if (mealFilter === 'breakfast' && c.subscribe_breakfast !== true) return false;
+    if (mealFilter === 'lunch' && c.subscribe_lunch === false) return false;
+    if (mealFilter === 'dinner' && c.subscribe_dinner === false) return false;
 
     const subStatus = getSubStatus(c);
 
@@ -327,6 +334,10 @@ export default function AdminClientsPage() {
                   <label style={fieldLabel}>Pincode *</label>
                   <input placeholder="e.g. 600040" value={form.pincode} onChange={(e) => setForm(f => ({ ...f, pincode: e.target.value }))} style={inputSm} required />
                 </div>
+              </div>
+              <div style={{ marginTop: 12 }}>
+                <label style={fieldLabel}>Google Maps Link (Optional)</label>
+                <input placeholder="e.g. https://maps.app.goo.gl/..." value={form.gmap_link} onChange={(e) => setForm(f => ({ ...f, gmap_link: e.target.value }))} style={inputSm} />
               </div>
             </div>
             <div style={{ gridColumn: '1 / -1', marginTop: 8 }}>
@@ -461,24 +472,33 @@ export default function AdminClientsPage() {
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
         <input
           placeholder="🔍 Search by name, location or pincode…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{ ...inputSm, flex: 1, minWidth: 200 }}
+          style={{ ...inputSm, flex: '1 1 200px' }}
         />
-        <div style={{ display: 'flex', gap: 10 }}>
-          <select 
-            value={sortMode}
-            onChange={(e) => setSortMode(e.target.value as any)}
-            style={{ ...inputSm, cursor: 'pointer', background: 'white' }}
-          >
+        <select 
+          value={mealFilter}
+          onChange={(e) => setMealFilter(e.target.value as any)}
+          style={{ ...inputSm, cursor: 'pointer', background: 'white', flexShrink: 0 }}
+        >
+            <option value="all">All Meals</option>
+            <option value="breakfast">Breakfast</option>
+            <option value="lunch">Lunch</option>
+            <option value="dinner">Dinner</option>
+          </select>
+        <select 
+          value={sortMode}
+          onChange={(e) => setSortMode(e.target.value as any)}
+          style={{ ...inputSm, cursor: 'pointer', background: 'white', flexShrink: 0 }}
+        >
             <option value="name">Sort: Name</option>
             <option value="validityAsc">Sort: Expiring First</option>
             <option value="validityDesc">Sort: Most Days Left</option>
           </select>
-          <div style={{ display: 'flex', border: '1.5px solid var(--color-border)', borderRadius: 10, overflow: 'hidden', background: 'white' }}>
+        <div style={{ display: 'flex', border: '1.5px solid var(--color-border)', borderRadius: 10, overflow: 'hidden', background: 'white', flexShrink: 0 }}>
             <button
               onClick={() => handleSetViewMode('grid')}
             style={{
@@ -519,7 +539,6 @@ export default function AdminClientsPage() {
             📝 List
           </button>
         </div>
-      </div>
       </div>
 
       {/* Filter Tabs */}

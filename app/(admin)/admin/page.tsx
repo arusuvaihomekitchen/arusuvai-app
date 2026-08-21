@@ -430,6 +430,11 @@ function DeliveryRow({
                 <span style={{ fontSize: 10 }}>{(d as any).diet_preference === 'Non-Veg' ? '🔴' : '🟢'}</span>
               </span>
               <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>📞 {d.phone_number}</span>
+              {d.gmap_link && (
+                <a href={d.gmap_link} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: 'var(--color-primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, background: 'var(--color-primary-light)', padding: '2px 8px', borderRadius: 12, fontWeight: 600 }}>
+                  🗺️ Map
+                </a>
+              )}
             </div>
             <div className="mobile-stack-full" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               {hasPendingSkip && <Badge variant="pending">⚠ Skip Requested</Badge>}
@@ -478,6 +483,11 @@ function CompletedRow({ delivery: d, onRestore }: { delivery: DailyDelivery; onR
           <span style={{ fontSize: 9 }}>{(d as any).diet_preference === 'Non-Veg' ? '🔴' : '🟢'}</span>
         </span>
         <span style={{ fontSize: 11, color: 'var(--color-text-muted)', marginLeft: 8 }}>📍 {d.location || ''} {d.pincode ? `(${d.pincode})` : ''}</span>
+        {d.gmap_link && (
+          <a href={d.gmap_link} target="_blank" rel="noopener noreferrer" style={{ fontSize: 10, color: 'var(--color-primary)', marginLeft: 6, textDecoration: 'underline' }}>
+            Map
+          </a>
+        )}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ textAlign: 'right' }}>

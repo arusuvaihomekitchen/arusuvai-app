@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
     const session = await getSession();
     if (!session) return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 });
 
-    const { name, phone_number, location, pincode, password, delivery_note, subscription, diet_preference } = await req.json();
+    const { name, phone_number, location, pincode, gmap_link, password, delivery_note, subscription, diet_preference } = await req.json();
 
     if (!name || !phone_number || !password || !pincode) {
       return NextResponse.json<ApiResponse>({ success: false, error: 'Name, phone number, password, and pincode are required' }, { status: 400 });
@@ -74,9 +74,9 @@ export async function POST(req: NextRequest) {
       await db.query('BEGIN');
 
       await db.query(
-        `INSERT INTO users (id, name, phone_number, role, location, pincode, username, password_hash, delivery_note, created_by, diet_preference)
-         VALUES ($1, $2, $3, 'client', $4, $5, $6, $7, $8, $9, $10)`,
-        [userId, name, phone_number, location ?? '', pincode ?? null, phone_number, passwordHash, delivery_note ?? '', session.id, diet_preference ?? 'Veg']
+        `INSERT INTO users (id, name, phone_number, role, location, pincode, gmap_link, username, password_hash, delivery_note, created_by, diet_preference)
+         VALUES ($1, $2, $3, 'client', $4, $5, $6, $7, $8, $9, $10, $11)`,
+        [userId, name, phone_number, location ?? '', pincode ?? null, gmap_link ?? null, phone_number, passwordHash, delivery_note ?? '', session.id, diet_preference ?? 'Veg']
       );
 
       if (subscription) {

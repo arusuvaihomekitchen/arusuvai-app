@@ -19,7 +19,7 @@ export async function GET(
 
     // Fetch user
     const userRes = await pool.query(
-      `SELECT id, name, phone_number, location, pincode, delivery_note, diet_preference, is_active, created_at FROM users WHERE id = $1 AND role = 'client'`,
+      `SELECT id, name, phone_number, location, pincode, gmap_link, delivery_note, diet_preference, is_active, created_at FROM users WHERE id = $1 AND role = 'client'`,
       [id]
     );
 
@@ -94,7 +94,7 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await req.json();
-    const { name, phone_number, location, pincode, password, delivery_note, diet_preference, is_active, sub_amount, start_date, end_date, subscribe_lunch, subscribe_dinner, subscribe_breakfast } = body;
+    const { name, phone_number, location, pincode, gmap_link, password, delivery_note, diet_preference, is_active, sub_amount, start_date, end_date, subscribe_lunch, subscribe_dinner, subscribe_breakfast } = body;
     if (pincode !== undefined && !pincode.trim()) {
       return NextResponse.json<ApiResponse>({ success: false, error: 'Pincode is required' }, { status: 400 });
     }
@@ -125,6 +125,10 @@ export async function PATCH(
       if (pincode !== undefined) {
         updates.push(`pincode = $${placeholderIdx++}`);
         values.push(pincode);
+      }
+      if (gmap_link !== undefined) {
+        updates.push(`gmap_link = $${placeholderIdx++}`);
+        values.push(gmap_link);
       }
       if (delivery_note !== undefined) {
         updates.push(`delivery_note = $${placeholderIdx++}`);

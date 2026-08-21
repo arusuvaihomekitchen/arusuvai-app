@@ -196,7 +196,14 @@ export default function DeliveryTodayPage() {
                           )}
                         </div>
                         <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 2 }}>📞 {d.phone_number}</div>
-                        <div style={{ fontSize: 12, color: 'var(--color-text-light)', marginTop: 2 }}>📍 {d.location}</div>
+                        <div style={{ fontSize: 12, color: 'var(--color-text-light)', marginTop: 2, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+                          📍 {d.location}
+                          {d.gmap_link && (
+                            <a href={d.gmap_link} target="_blank" rel="noopener noreferrer" style={{ background: 'var(--color-primary-light)', color: 'var(--color-primary)', textDecoration: 'none', padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              🗺️ Open in Maps
+                            </a>
+                          )}
+                        </div>
                       </div>
                       <div style={{
                         width: 32, height: 32,

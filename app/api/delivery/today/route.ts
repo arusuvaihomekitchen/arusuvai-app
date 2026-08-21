@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
               u.phone_number,
               u.location,
               u.pincode,
+              u.gmap_link,
               u.delivery_note as delivery_note_client,
               sr.status as skip_status,
               sr.id as skip_req_id

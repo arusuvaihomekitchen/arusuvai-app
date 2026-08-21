@@ -141,6 +141,7 @@ export async function GET(req: NextRequest) {
               u.phone_number,
               u.location,
               u.pincode,
+              u.gmap_link,
               u.diet_preference,
               u.delivery_note as delivery_note_client,
               dp.name as delivery_person_name,

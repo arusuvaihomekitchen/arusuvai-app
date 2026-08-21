@@ -16,7 +16,7 @@ export async function GET(
 
     // Fetch client
     const userRes = await pool.query(
-      `SELECT name, phone_number, location, pincode FROM users WHERE id = $1 AND role = 'client'`,
+      `SELECT name, phone_number, location, pincode, gmap_link FROM users WHERE id = $1 AND role = 'client'`,
       [id]
     );
 
@@ -45,7 +45,7 @@ export async function GET(
     const rows: string[] = [];
     
     // Header
-    rows.push(`Client Name: ${client.name},Phone: ${client.phone_number},Location: ${client.location.replace(/,/g, ' ')},Pincode: ${client.pincode || ''}`);
+    rows.push(`Client Name: ${client.name},Phone: ${client.phone_number},Location: ${client.location.replace(/,/g, ' ')},Pincode: ${client.pincode || ''},GMap: ${client.gmap_link || ''}`);
     rows.push('');
     
     // Deliveries Section
