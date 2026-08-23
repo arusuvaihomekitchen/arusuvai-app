@@ -329,7 +329,10 @@ export default function AdminTodayPage() {
                         onApproveSkip={() => d.skip_req_id && approveSkip(d.skip_req_id)}
                         onRejectSkip={() => d.skip_req_id && rejectSkip(d.skip_req_id)}
                         onAdminSkip={() => setConfirmSkipDelivery(d)}
-                        onRefresh={loadDeliveries}
+                        onRefresh={() => {
+                          invalidateCache('/api/admin/today');
+                          loadDeliveries(true);
+                        }}
                       />
                     ))}
                   </div>
@@ -371,6 +374,45 @@ export default function AdminTodayPage() {
             onChange={setAssignPerson}
           />
         </div>
+        
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-light)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Selected Deliveries ({selected.size})
+          </div>
+          <div style={{ maxHeight: 200, overflowY: 'auto', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 8, padding: 8 }}>
+            {deliveries.filter(d => selected.has(d.id)).map(d => (
+              <div key={d.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 8px', borderBottom: '1px solid var(--color-border)' }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{d.client_name}</span>
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    const currentDiet = d.diet_override || (d as any).diet_preference || 'Veg';
+                    const newDiet = currentDiet === 'Veg' ? 'Non-Veg' : 'Veg';
+                    await fetch(`/api/admin/deliveries/${d.id}/diet`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ diet_override: newDiet })
+                    });
+                    invalidateCache('/api/admin/today');
+                    loadDeliveries(true);
+                  }}
+                  style={{
+                    fontSize: 10, fontWeight: 800, padding: '4px 8px', borderRadius: 6, cursor: 'pointer',
+                    border: '1px solid var(--color-border)',
+                    background: (d.diet_override || (d as any).diet_preference) === 'Non-Veg' ? '#FEF2F2' : '#F0FDF4',
+                    color: (d.diet_override || (d as any).diet_preference) === 'Non-Veg' ? '#991B1B' : '#166534',
+                    display: 'flex', alignItems: 'center', gap: 4
+                  }}
+                  title="Click to toggle diet for this delivery"
+                >
+                  {(d.diet_override || (d as any).diet_preference) === 'Non-Veg' ? '🔴 Non-Veg' : '🟢 Veg'}
+                  <span style={{ fontSize: 9, opacity: 0.6 }}>⇄ Switch</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div style={{ display: 'flex', gap: 8 }}>
           <Button variant="ghost" fullWidth onClick={() => setShowAssignModal(false)}>Cancel</Button>
           <Button variant="primary" fullWidth onClick={bulkAssign}>Assign →</Button>
@@ -406,6 +448,7 @@ function DeliveryRow({
   onAdminSkip: () => void;
   onRefresh: () => void;
 }) {
+  const [isRevoking, setIsRevoking] = React.useState(false);
   const hasPendingSkip = !!d.skip_req_id && d.skip_status === 'pending';
 
   return (
@@ -427,7 +470,14 @@ function DeliveryRow({
             <div className="mobile-stack" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 6 }}>
                 {d.client_name}
-                <span style={{ fontSize: 10 }}>{(d as any).diet_preference === 'Non-Veg' ? '🔴' : '🟢'}</span>
+                <span style={{
+                  fontSize: 10, fontWeight: 800, padding: '2px 6px', borderRadius: 4,
+                  border: '1px solid var(--color-border)',
+                  background: (d.diet_override || (d as any).diet_preference) === 'Non-Veg' ? '#FEF2F2' : '#F0FDF4',
+                  color: (d.diet_override || (d as any).diet_preference) === 'Non-Veg' ? '#991B1B' : '#166534'
+                }}>
+                  {(d.diet_override || (d as any).diet_preference) === 'Non-Veg' ? '🔴 Non-Veg' : '🟢 Veg'}
+                </span>
               </span>
               <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>📞 {d.phone_number}</span>
               {d.gmap_link && (
@@ -439,7 +489,26 @@ function DeliveryRow({
             <div className="mobile-stack-full" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               {hasPendingSkip && <Badge variant="pending">⚠ Skip Requested</Badge>}
               {d.status === 'assigned' && d.delivery_person_name && (
-                <Badge variant="assigned">Assigned — {d.delivery_person_name}</Badge>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Badge variant="assigned">Assigned — {d.delivery_person_name}</Badge>
+                  <button
+                    disabled={isRevoking}
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (!confirm(`Are you sure you want to revoke assignment from ${d.delivery_person_name}?`)) return;
+                      setIsRevoking(true);
+                      await fetch(`/api/admin/deliveries/${d.id}/unassign`, { method: 'POST' });
+                      onRefresh();
+                      setIsRevoking(false);
+                    }}
+                    style={{
+                      fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4, cursor: 'pointer',
+                      border: '1px solid #FCA5A5', background: '#FEF2F2', color: '#B91C1C'
+                    }}
+                  >
+                    {isRevoking ? 'Revoking...' : 'Revoke'}
+                  </button>
+                </div>
               )}
             </div>
           </div>

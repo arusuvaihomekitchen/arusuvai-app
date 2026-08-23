@@ -191,6 +191,14 @@ export default function DeliveryTodayPage() {
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                           <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)' }}>{d.client_name}</span>
+                          <span style={{
+                            fontSize: 10, fontWeight: 800, padding: '2px 6px', borderRadius: 4,
+                            background: (d.diet_override || (d as any).diet_preference) === 'Non-Veg' ? '#FEF2F2' : '#F0FDF4',
+                            color: (d.diet_override || (d as any).diet_preference) === 'Non-Veg' ? '#991B1B' : '#166534',
+                            border: '1px solid var(--color-border)'
+                          }}>
+                            {(d.diet_override || (d as any).diet_preference) === 'Non-Veg' ? '🔴 Non-Veg' : '🟢 Veg'}
+                          </span>
                           {d.skip_status === 'pending' && (
                             <Badge variant="pending">Skip Pending</Badge>
                           )}

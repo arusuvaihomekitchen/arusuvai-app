@@ -73,6 +73,7 @@ export interface DailyDelivery {
   assigned_at: string | null;
   delivered_at: string | null;
   delivery_note: string;
+  diet_override?: string;
 }
 
 export interface LocationFare {
