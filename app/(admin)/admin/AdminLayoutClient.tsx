@@ -10,6 +10,7 @@ const adminTabs = [
   { href: '/admin/delivery-persons',      label: 'nav.delivery', icon: '🛵' },
   { href: '/admin/packages',              label: 'nav.packages', icon: '🏷️' },
   { href: '/admin/weekly-menu',           label: 'nav.menu',     icon: '🍛' },
+  { href: '/admin/undelivered',           label: 'Undelivered',  icon: '⚠️' },
 ];
 
 
