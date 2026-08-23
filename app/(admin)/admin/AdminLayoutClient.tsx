@@ -11,6 +11,7 @@ const adminTabs = [
   { href: '/admin/packages',              label: 'nav.packages', icon: '🏷️' },
   { href: '/admin/weekly-menu',           label: 'nav.menu',     icon: '🍛' },
   { href: '/admin/undelivered',           label: 'Undelivered',  icon: '⚠️' },
+  { href: '/admin/specials',              label: 'Specials',     icon: '🌟' },
 ];
 
 

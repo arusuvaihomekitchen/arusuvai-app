@@ -23,6 +23,27 @@ export interface User {
   created_at: string;
 }
 
+export interface MonthlyBill {
+  id: string;
+  client_id: string;
+  month: string;
+  year: number;
+  total_amount: number;
+  status: PaymentStatus;
+  created_at: string;
+  due_date: string | null;
+  paid_date: string | null;
+}
+
+export interface TodaySpecial {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  is_active: boolean;
+  created_at: string;
+}
+
 export interface Subscription {
   id: string;
   client_id: string;
