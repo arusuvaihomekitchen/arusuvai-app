@@ -81,7 +81,7 @@ export default function UndeliveredPage() {
                         <div>
                           <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 6 }}>
                             {d.client_name}
-                            <Badge variant={d.meal_type === 'Lunch' ? 'lunch' : 'dinner'}>{d.meal_type}</Badge>
+                            <Badge variant={d.meal_type === 'Lunch' ? 'active' : 'pending'}>{d.meal_type}</Badge>
                           </div>
                           <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 4 }}>
                             📞 {d.phone_number || 'No phone'}
