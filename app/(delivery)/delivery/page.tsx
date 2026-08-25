@@ -30,7 +30,7 @@ export default function DeliveryTodayPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const res = await fetch(`/api/delivery/today?date=${date}`);
+    const res = await fetch(`/api/delivery/today?date=${date}`, { cache: 'no-store' });
     if (res.status === 401) { router.push('/login'); return; }
     const data = await res.json();
     setDeliveries(data.data ?? []);

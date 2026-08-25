@@ -11,7 +11,7 @@ export default function UndeliveredPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch('/api/admin/undelivered');
+        const res = await fetch('/api/admin/undelivered', { cache: 'no-store' });
         const json = await res.json();
         if (json.success) {
           setData(json.data);

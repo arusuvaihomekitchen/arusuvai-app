@@ -14,7 +14,7 @@ export async function PATCH(
     const { id } = await params;
     const { status, delivery_note } = await req.json();
 
-    if (!['delivered', 'not_available'].includes(status)) {
+    if (!['delivered', 'not_available', 'assigned'].includes(status)) {
       return NextResponse.json<ApiResponse>({ success: false, error: 'Invalid status' }, { status: 400 });
     }
 

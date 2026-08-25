@@ -4,6 +4,8 @@ import { getSession } from '@/lib/session';
 import { todayIST } from '@/lib/dateUtils';
 import type { ApiResponse } from '@/types';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     const session = await getSession();
