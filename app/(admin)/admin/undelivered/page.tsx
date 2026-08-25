@@ -7,6 +7,9 @@ import type { DailyDelivery } from '@/types';
 export default function UndeliveredPage() {
   const [data, setData] = useState<DailyDelivery[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterMode, setFilterMode] = useState<'7days' | 'custom'>('7days');
+  const [customFrom, setCustomFrom] = useState('');
+  const [customTo, setCustomTo] = useState('');
 
   useEffect(() => {
     async function load() {
@@ -31,7 +34,23 @@ export default function UndeliveredPage() {
     if (!grouped[d.date]) grouped[d.date] = [];
     grouped[d.date].push(d);
   }
-  const dates = Object.keys(grouped).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+  let dates = Object.keys(grouped).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+
+  // Apply filters
+  if (filterMode === '7days') {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    dates = dates.filter(d => new Date(d).getTime() >= sevenDaysAgo.getTime());
+  } else if (filterMode === 'custom') {
+    if (customFrom) {
+      const fromTime = new Date(customFrom).getTime();
+      dates = dates.filter(d => new Date(d).getTime() >= fromTime);
+    }
+    if (customTo) {
+      const toTime = new Date(customTo).getTime();
+      dates = dates.filter(d => new Date(d).getTime() <= toTime);
+    }
+  }
 
   if (loading) {
     return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading records...</div>;
@@ -39,11 +58,43 @@ export default function UndeliveredPage() {
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', paddingBottom: 60 }}>
-      <div style={{ marginBottom: 32 }}>
+      <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text)', marginBottom: 8 }}>Undelivered Meals</h1>
         <p style={{ fontSize: 14, color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
-          History of deliveries that were marked as "Not Available" by the delivery person, or missed past deliveries.
+          History of deliveries that were marked as "Not Available" by the delivery person. <br/>
+          Also includes <strong>Missed Deliveries</strong> (deliveries that were assigned but never explicitly marked as Delivered or Not Available before the day ended).
         </p>
+      </div>
+
+      <div style={{ display: 'flex', gap: 12, marginBottom: 32, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 8, background: 'var(--color-border)', padding: 4, borderRadius: 10 }}>
+          <button 
+            onClick={() => setFilterMode('7days')}
+            style={{ padding: '8px 16px', border: 'none', background: filterMode === '7days' ? 'white' : 'transparent', color: filterMode === '7days' ? 'var(--color-text)' : 'var(--color-text-muted)', borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: 'pointer', boxShadow: filterMode === '7days' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none' }}
+          >
+            Last 7 Days
+          </button>
+          <button 
+            onClick={() => setFilterMode('custom')}
+            style={{ padding: '8px 16px', border: 'none', background: filterMode === 'custom' ? 'white' : 'transparent', color: filterMode === 'custom' ? 'var(--color-text)' : 'var(--color-text-muted)', borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: 'pointer', boxShadow: filterMode === 'custom' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none' }}
+          >
+            Custom Range
+          </button>
+        </div>
+
+        {filterMode === 'custom' && (
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center', background: 'white', border: '1px solid var(--color-border)', padding: '6px 12px', borderRadius: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-muted)' }}>From</span>
+              <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} style={{ border: 'none', outline: 'none', fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }} />
+            </div>
+            <div style={{ width: 1, height: 20, background: 'var(--color-border)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-muted)' }}>To</span>
+              <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)} style={{ border: 'none', outline: 'none', fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }} />
+            </div>
+          </div>
+        )}
       </div>
 
       {dates.length === 0 ? (
