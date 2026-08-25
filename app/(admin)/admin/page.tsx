@@ -37,7 +37,6 @@ export default function AdminTodayPage() {
 
   const loadDeliveries = useCallback((bypassCache = false) => {
     setLoading(true);
-    setSelected(new Set());
     const unsub = swrFetch(`/api/admin/today?date=${date}`, (json) => {
       setDeliveries(json.data ?? []);
       setLoading(false);
@@ -46,6 +45,7 @@ export default function AdminTodayPage() {
   }, [date]);
 
   useEffect(() => {
+    setSelected(new Set());
     const unsub = loadDeliveries();
     return unsub;
   }, [loadDeliveries]);
