@@ -18,8 +18,8 @@ export async function GET(req: NextRequest) {
     
     const res = await pool.query(`
       SELECT 
-        d.id, d.date, d.meal_type, d.status, d.delivery_note, d.delivery_note_client,
-        u.name as client_name, u.phone_number, u.location, u.pincode, u.gmap_link,
+        d.id, d.date, d.meal_type, d.status, d.delivery_note,
+        u.name as client_name, u.phone_number, u.location, u.pincode, u.gmap_link, u.delivery_note as delivery_note_client,
         dp.name as delivery_person_name
       FROM daily_deliveries d
       JOIN users u ON d.client_id = u.id
