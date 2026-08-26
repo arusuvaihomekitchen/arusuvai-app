@@ -31,7 +31,6 @@ export default function AdminTodayPage() {
   const [deliveryPersons, setDeliveryPersons] = useState<{ id: string; name: string }[]>([]);
   const [assignPerson, setAssignPerson] = useState('');
   const [showAssignModal, setShowAssignModal] = useState(false);
-  const [generating, setGenerating] = useState(false);
   const [skippingAll, setSkippingAll] = useState(false);
   const [confirmSkipDelivery, setConfirmSkipDelivery] = useState<DailyDelivery | null>(null);
 
@@ -57,18 +56,6 @@ export default function AdminTodayPage() {
     });
     return unsub;
   }, []);
-
-  async function generateToday() {
-    setGenerating(true);
-    await fetch('/api/admin/generate-today', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ date }),
-    });
-    invalidateCache('/api/admin/today');
-    loadDeliveries(true);
-    setGenerating(false);
-  }
 
   async function skipAll() {
     if (!confirm('Are you sure you want to skip all active deliveries for ' + mealTab + ' on this date? (e.g. for a holiday)')) return;
@@ -135,27 +122,35 @@ export default function AdminTodayPage() {
       body: JSON.stringify({ delivery_ids: Array.from(selected), delivery_person_id: assignPerson }),
     });
     setShowAssignModal(false);
+    setSelected(new Set());
     invalidateCache('/api/admin/today');
     invalidateCache('/api/admin/delivery-persons');
     loadDeliveries(true);
   }
 
-  const [listFilter, setListFilter] = useState<'all' | 'to_deliver' | 'delivered' | 'pending_skips'>('all');
+  const [listFilter, setListFilter] = useState<'all' | 'unassigned' | 'assigned' | 'delivered' | 'pending_skips'>('all');
 
   const filtered = deliveries.filter((d) => d.meal_type === mealTab);
   const toDeliver = filtered.filter((d) => ['pending', 'assigned'].includes(d.status));
   const completedRows = filtered.filter((d) => ['delivered', 'not_available', 'skipped'].includes(d.status));
   const pendingSkips = filtered.filter((d) => d.skip_req_id && d.skip_status === 'pending').length;
 
-  const groupedToDeliver = toDeliver.reduce((acc, d) => {
+  const pendingDeliveries = filtered.filter((d) => d.status === 'pending');
+  const assignedDeliveries = filtered.filter((d) => d.status === 'assigned');
+
+  const groupDeliveries = (arr: DailyDelivery[]) => arr.reduce((acc, d) => {
     const loc = d.pincode || d.location || 'Unknown Pincode/Location';
     if (!acc[loc]) acc[loc] = [];
     acc[loc].push(d);
     return acc;
   }, {} as Record<string, DailyDelivery[]>);
 
-  const toggleLocationSelect = (loc: string) => {
-    const ids = groupedToDeliver[loc].map(d => d.id);
+  const groupedPending = groupDeliveries(pendingDeliveries);
+  const groupedAssigned = groupDeliveries(assignedDeliveries);
+
+  const toggleLocationSelect = (loc: string, isAssigned: boolean) => {
+    const group = isAssigned ? groupedAssigned : groupedPending;
+    const ids = group[loc].map(d => d.id);
     setSelected(prev => {
       const next = new Set(prev);
       const allSelected = ids.every(id => next.has(id));
@@ -222,28 +217,26 @@ export default function AdminTodayPage() {
         <button onClick={() => navDate(1)} style={navBtnStyle}>›</button>
       </div>
 
-      {/* Summary pills */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-        {[
-          { id: 'all', label: 'Total', value: filtered.length, style: { background: listFilter === 'all' ? 'var(--color-primary)' : 'white', border: '1px solid var(--color-border)', color: listFilter === 'all' ? 'white' : 'var(--color-text)' } },
-          { id: 'to_deliver', label: 'To deliver', value: toDeliver.length, style: { background: listFilter === 'to_deliver' ? 'var(--color-primary)' : 'white', border: '1px solid var(--color-border)', color: listFilter === 'to_deliver' ? 'white' : 'var(--color-text)' } },
-          { id: 'delivered', label: 'Delivered', value: completedRows.filter((d) => d.status === 'delivered').length, style: { background: listFilter === 'delivered' ? 'var(--color-primary)' : 'var(--color-primary-light)', border: '1px solid #A8D4A8', color: listFilter === 'delivered' ? 'white' : 'var(--color-primary)' } },
-          pendingSkips > 0 ? { id: 'pending_skips', label: 'Pending skips', value: pendingSkips, style: { background: listFilter === 'pending_skips' ? 'var(--color-accent)' : 'var(--color-accent-light)', border: '1px solid var(--color-accent)', color: listFilter === 'pending_skips' ? 'white' : 'var(--color-accent-dark)' } } : null,
-        ].filter(Boolean).map((p) => p && (
-          <div key={p.label} onClick={() => setListFilter(p.id as any)} style={{
-            ...p.style, borderRadius: 12, padding: '8px 14px', fontSize: 12,
-            display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', transition: 'all 0.15s ease'
-          }}>
-            <span style={{ fontWeight: 600 }}>{p.label}</span>
-            <span style={{ fontWeight: 900, fontSize: 14 }}>{p.value}</span>
-          </div>
-        ))}
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      {/* Summary filters */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        <div style={{ width: 220, flexShrink: 0, zIndex: 10 }}>
+          <CustomDropdown 
+            label="Filter List"
+            value={listFilter}
+            onChange={(v) => setListFilter(v as any)}
+            options={[
+              { id: 'all', name: `Total (${filtered.length})` },
+              { id: 'unassigned', name: `Unassigned (${pendingDeliveries.length})` },
+              { id: 'assigned', name: `Assigned (${assignedDeliveries.length})` },
+              { id: 'delivered', name: `Delivered (${completedRows.filter((d) => d.status === 'delivered').length})` },
+              ...(pendingSkips > 0 ? [{ id: 'pending_skips', name: `Pending Skips (${pendingSkips})` }] : [])
+            ]}
+          />
+        </div>
+        
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 19 }}>
           <Button size="sm" variant="ghost" onClick={skipAll} loading={skippingAll} style={{ color: '#DC2626', borderColor: '#FECACA', background: '#FEF2F2' }}>
             🚫 Skip All (Holiday)
-          </Button>
-          <Button size="sm" variant="ghost" onClick={generateToday} loading={generating}>
-            ⟳ Generate List
           </Button>
         </div>
       </div>
@@ -291,54 +284,66 @@ export default function AdminTodayPage() {
         <div style={{ textAlign: 'center', padding: 40, color: 'var(--color-text-light)' }}>Loading deliveries…</div>
       ) : (
         <>
-          {/* To Be Delivered */}
-          {(listFilter === 'all' || listFilter === 'to_deliver' || listFilter === 'pending_skips') && toDeliver.length > 0 && (
-            <div style={{ marginBottom: 24 }}>
-              <h3 style={sectionHeader}>📦 To Be Delivered — {toDeliver.length}</h3>
-              {Object.entries(groupedToDeliver).map(([loc, rows]) => {
-                const displayRows = listFilter === 'pending_skips' 
-                  ? rows.filter(d => d.skip_req_id && d.skip_status === 'pending')
-                  : rows;
+          {/* To Be Delivered Sections */}
+          {(listFilter === 'all' || listFilter === 'unassigned' || listFilter === 'assigned' || listFilter === 'pending_skips') && (
+            <>
+              {[
+                { title: `⏳ Unassigned — ${pendingDeliveries.length}`, data: groupedPending, count: pendingDeliveries.length, isAssigned: false, filterId: 'unassigned' },
+                { title: `🚚 Assigned — ${assignedDeliveries.length}`, data: groupedAssigned, count: assignedDeliveries.length, isAssigned: true, filterId: 'assigned' }
+              ].map(section => {
+                if (section.count === 0) return null;
+                if (listFilter !== 'all' && listFilter !== 'pending_skips' && listFilter !== section.filterId) return null;
                 
-                if (displayRows.length === 0) return null;
-                
-                const allSelected = displayRows.length > 0 && displayRows.every(d => selected.has(d.id));
-
                 return (
-                  <div key={loc} style={{ marginBottom: 16 }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8, padding: '0 4px' }}>
-                      <h4 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: 'var(--color-text)', flex: 1, marginRight: 12, lineHeight: 1.4 }}>
-                        📍 {loc}
-                      </h4>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: 'var(--color-primary)', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                        <input 
-                          type="checkbox" 
-                          checked={allSelected} 
-                          onChange={() => toggleLocationSelect(loc)}
-                          style={{ accentColor: 'var(--color-primary)', marginTop: 2 }}
-                        />
-                        Select All
-                      </label>
-                    </div>
-                    {displayRows.map((d) => (
-                      <DeliveryRow
-                        key={d.id}
-                        delivery={d}
-                        selected={selected.has(d.id)}
-                        onToggle={() => toggleSelect(d.id)}
-                        onApproveSkip={() => d.skip_req_id && approveSkip(d.skip_req_id)}
-                        onRejectSkip={() => d.skip_req_id && rejectSkip(d.skip_req_id)}
-                        onAdminSkip={() => setConfirmSkipDelivery(d)}
-                        onRefresh={() => {
-                          invalidateCache('/api/admin/today');
-                          loadDeliveries(true);
-                        }}
-                      />
-                    ))}
+                  <div key={section.title} style={{ marginBottom: 24 }}>
+                    <h3 style={sectionHeader}>{section.title}</h3>
+                    {Object.entries(section.data).map(([loc, rows]) => {
+                      const displayRows = listFilter === 'pending_skips' 
+                        ? rows.filter(d => d.skip_req_id && d.skip_status === 'pending')
+                        : rows;
+                      
+                      if (displayRows.length === 0) return null;
+                      
+                      const allSelected = displayRows.length > 0 && displayRows.every(d => selected.has(d.id));
+
+                      return (
+                        <div key={loc} style={{ marginBottom: 16 }}>
+                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8, padding: '0 4px' }}>
+                            <h4 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: 'var(--color-text)', flex: 1, marginRight: 12, lineHeight: 1.4 }}>
+                              📍 {loc}
+                            </h4>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: 'var(--color-primary)', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                              <input 
+                                type="checkbox" 
+                                checked={allSelected} 
+                                onChange={() => toggleLocationSelect(loc, section.isAssigned)}
+                                style={{ accentColor: 'var(--color-primary)', marginTop: 2 }}
+                              />
+                              Select All
+                            </label>
+                          </div>
+                          {displayRows.map((d) => (
+                            <DeliveryRow
+                              key={d.id}
+                              delivery={d}
+                              selected={selected.has(d.id)}
+                              onToggle={() => toggleSelect(d.id)}
+                              onApproveSkip={() => d.skip_req_id && approveSkip(d.skip_req_id)}
+                              onRejectSkip={() => d.skip_req_id && rejectSkip(d.skip_req_id)}
+                              onAdminSkip={() => setConfirmSkipDelivery(d)}
+                              onRefresh={() => {
+                                invalidateCache('/api/admin/today');
+                                loadDeliveries(true);
+                              }}
+                            />
+                          ))}
+                        </div>
+                      );
+                    })}
                   </div>
                 );
               })}
-            </div>
+            </>
           )}
 
           {/* Completed */}
