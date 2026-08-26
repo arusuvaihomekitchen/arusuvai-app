@@ -61,6 +61,21 @@ export default function AdminSpecialsPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
+    
+    if (availableUntil) {
+      const now = new Date();
+      const istTimeStr = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata', hour12: false });
+      let [h, m] = istTimeStr.split(':');
+      if (h === '24') h = '00';
+      const currentHM = `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
+      
+      if (availableUntil <= currentHM) {
+        alert('The expiration time you entered is earlier than the current time! This means the special would instantly expire. Please enter a time in the future (up to 11:59 PM).');
+        setSubmitting(false);
+        return;
+      }
+    }
+
     try {
       if (editingId) {
         await fetch(`/api/admin/specials/${editingId}`, {

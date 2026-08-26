@@ -41,12 +41,16 @@ export default function SpecialsPage() {
 
   function checkExpired(availableUntil: string | null) {
     if (!availableUntil) return false;
-    const istTimeStr = currentTime.toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata', hour12: false });
-    let [h, m] = istTimeStr.split(':');
-    if (h === '24') h = '00';
-    const currentHM = `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
-    const limitHM = availableUntil.slice(0, 5);
-    return currentHM >= limitHM;
+    
+    // Get current time in IST safely
+    const now = new Date(currentTime.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
+    
+    // Parse DB time (HH:MM:SS)
+    const [h, m] = availableUntil.split(':').map(Number);
+    const limitTotalMinutes = h * 60 + m;
+    
+    return currentTotalMinutes >= limitTotalMinutes;
   }
 
   function formatTime(timeStr: string) {
@@ -90,20 +94,23 @@ export default function SpecialsPage() {
             <div style={{ display: 'grid', gap: 16 }}>
               {specials.map(s => (
                 <div key={s.id} style={{
+                  position: 'relative',
                   background: 'white', border: '1px solid #E5E7EB', borderRadius: 16, padding: '24px',
                   display: 'flex', flexDirection: 'column', gap: 16,
                   boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
                   transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                   cursor: 'default'
                 }}>
-                  {checkExpired(s.available_until) && (
-                    <div style={{ position: 'absolute', top: 12, right: 12, background: '#FEE2E2', color: '#991B1B', fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 12 }}>
-                      Time Expired
-                    </div>
-                  )}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
                     <div>
-                      <h3 style={{ fontSize: 20, fontWeight: 800, color: '#1A2E1A', marginBottom: 6 }}>{s.title}</h3>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                        <h3 style={{ fontSize: 20, fontWeight: 800, color: '#1A2E1A', margin: 0 }}>{s.title}</h3>
+                        {checkExpired(s.available_until) && (
+                          <span style={{ background: '#FEE2E2', color: '#991B1B', fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 12 }}>
+                            Time Expired
+                          </span>
+                        )}
+                      </div>
                       {s.description && (
                         <p style={{ fontSize: 14, color: '#5C6E5C', fontWeight: 500, lineHeight: 1.5, maxWidth: 450 }}>
                           {s.description}
