@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { title, description, price, is_active } = await req.json();
+    const { title, description, price, is_active, available_until } = await req.json();
     
     if (!title || price === undefined) {
       return NextResponse.json({ success: false, error: 'Missing fields' }, { status: 400 });
@@ -33,8 +33,8 @@ export async function POST(req: NextRequest) {
     const id = `spec_${randomUUID().replace(/-/g, '').slice(0, 12)}`;
     
     await pool.query(
-      `INSERT INTO todays_specials (id, title, description, price, is_active) VALUES ($1, $2, $3, $4, $5)`,
-      [id, title, description || '', price, is_active !== false]
+      `INSERT INTO todays_specials (id, title, description, price, is_active, available_until) VALUES ($1, $2, $3, $4, $5, $6)`,
+      [id, title, description || '', price, is_active !== false, available_until || null]
     );
 
     return NextResponse.json({ success: true });

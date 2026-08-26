@@ -18,6 +18,7 @@ export default function AdminSpecialsPage() {
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [isActive, setIsActive] = useState(true);
+  const [availableUntil, setAvailableUntil] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   async function loadSpecials() {
@@ -43,6 +44,7 @@ export default function AdminSpecialsPage() {
     setDescription('');
     setPrice('');
     setIsActive(true);
+    setAvailableUntil('');
     setShowModal(true);
   }
 
@@ -52,6 +54,7 @@ export default function AdminSpecialsPage() {
     setDescription(special.description || '');
     setPrice(special.price.toString());
     setIsActive(special.is_active);
+    setAvailableUntil(special.available_until ? special.available_until.slice(0, 5) : ''); // Format HH:MM from DB HH:MM:SS
     setShowModal(true);
   }
 
@@ -63,13 +66,13 @@ export default function AdminSpecialsPage() {
         await fetch(`/api/admin/specials/${editingId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, description, price: parseFloat(price), is_active: isActive })
+          body: JSON.stringify({ title, description, price: parseFloat(price), is_active: isActive, available_until: availableUntil || null })
         });
       } else {
         await fetch(`/api/admin/specials`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, description, price: parseFloat(price), is_active: isActive })
+          body: JSON.stringify({ title, description, price: parseFloat(price), is_active: isActive, available_until: availableUntil || null })
         });
       }
       setShowModal(false);
@@ -129,7 +132,14 @@ export default function AdminSpecialsPage() {
                   {s.is_active ? <Badge variant="delivered">Active</Badge> : <Badge variant="skipped">Inactive</Badge>}
                 </div>
                 <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 6 }}>{s.description}</div>
-                <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-primary)' }}>₹{s.price}</div>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-primary)' }}>₹{s.price}</div>
+                  {s.available_until && (
+                    <div style={{ fontSize: 12, fontWeight: 600, color: '#D97706', background: '#FEF3C7', padding: '2px 8px', borderRadius: 12 }}>
+                      Available until {s.available_until.slice(0, 5)}
+                    </div>
+                  )}
+                </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexDirection: 'column' }}>
                 <button 
@@ -162,9 +172,31 @@ export default function AdminSpecialsPage() {
             <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} style={{ width: '100%', padding: '10px 12px', border: '1.5px solid var(--color-border)', borderRadius: 8, fontFamily: 'inherit' }} placeholder="e.g. Served with Raita and Brinjal Curry" />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', marginBottom: 4 }}>Price (₹)</label>
-            <input required type="number" step="1" value={price} onChange={e => setPrice(e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1.5px solid var(--color-border)', borderRadius: 8 }} placeholder="e.g. 150" />
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 8 }}>
+              Price (₹) *
+            </label>
+            <input
+              type="number" required min="0" step="1"
+              value={price} onChange={e => setPrice(e.target.value)}
+              style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--color-border)', fontSize: 14, outline: 'none' }}
+              placeholder="e.g. 100"
+            />
           </div>
+
+          <div style={{ marginBottom: 20 }}>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 8 }}>
+              Available Until Time (Optional)
+            </label>
+            <input
+              type="time"
+              value={availableUntil} onChange={e => setAvailableUntil(e.target.value)}
+              style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--color-border)', fontSize: 14, outline: 'none' }}
+            />
+            <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 4 }}>
+              If set, the public order button will automatically disable after this time (e.g., 14:00).
+            </div>
+          </div>
+          
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <input type="checkbox" id="isActive" checked={isActive} onChange={e => setIsActive(e.target.checked)} style={{ accentColor: 'var(--color-primary)' }} />
             <label htmlFor="isActive" style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>Active (Visible to customers)</label>

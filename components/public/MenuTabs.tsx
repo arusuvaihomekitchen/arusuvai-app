@@ -27,6 +27,7 @@ const PACKAGES = [
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export default function MenuTabs({ menuRows, dateRange }: MenuTabsProps) {
+  const [activeTab, setActiveTab] = useState<'Lunch' | 'Dinner'>('Lunch');
   const todayDayName = new Date().toLocaleDateString('en-US', { weekday: 'long', timeZone: 'Asia/Kolkata' });
   const fallback = ['Menu not set yet'];
 
@@ -65,13 +66,28 @@ export default function MenuTabs({ menuRows, dateRange }: MenuTabsProps) {
         </div>
       </div>
 
+      <div style={{ display: 'flex', gap: 12, marginBottom: 24, padding: 4, background: '#F8F9FA', borderRadius: 12, width: 'fit-content', border: '1px solid #E8E2D5' }}>
+        <button 
+          onClick={() => setActiveTab('Lunch')}
+          style={{ padding: '10px 24px', border: 'none', background: activeTab === 'Lunch' ? 'white' : 'transparent', color: activeTab === 'Lunch' ? '#1A2E1A' : '#5C6E5C', borderRadius: 8, fontWeight: 800, fontSize: 15, cursor: 'pointer', boxShadow: activeTab === 'Lunch' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none', transition: 'all 0.2s' }}
+        >
+          🍱 Lunch Menu
+        </button>
+        <button 
+          onClick={() => setActiveTab('Dinner')}
+          style={{ padding: '10px 24px', border: 'none', background: activeTab === 'Dinner' ? 'white' : 'transparent', color: activeTab === 'Dinner' ? '#1A2E1A' : '#5C6E5C', borderRadius: 8, fontWeight: 800, fontSize: 15, cursor: 'pointer', boxShadow: activeTab === 'Dinner' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none', transition: 'all 0.2s' }}
+        >
+          🌙 Dinner Menu
+        </button>
+      </div>
+
       <div style={{ overflowX: 'auto', background: 'white', border: '1px solid #E8E2D5', borderRadius: 20, boxShadow: '0 12px 32px rgba(0,0,0,0.04)' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
           <thead>
             <tr style={{ background: '#F8F9FA' }}>
               <th style={{ padding: '20px 24px', textAlign: 'left', fontSize: 13, fontWeight: 800, color: '#1A2E1A', textTransform: 'uppercase', letterSpacing: '0.05em', width: '120px', borderBottom: '2px solid #E8E2D5' }}>Day</th>
-              {PACKAGES.map(pkg => (
-                <th key={pkg.id} style={{ padding: '20px 16px', textAlign: 'left', fontSize: 14, fontWeight: 800, color: '#1A2E1A', width: `${100 / PACKAGES.length}%`, borderBottom: '2px solid #E8E2D5' }}>
+              {PACKAGES.filter(p => p.mealType === activeTab).map(pkg => (
+                <th key={pkg.id} style={{ padding: '20px 16px', textAlign: 'left', fontSize: 14, fontWeight: 800, color: '#1A2E1A', width: `${100 / PACKAGES.filter(p => p.mealType === activeTab).length}%`, borderBottom: '2px solid #E8E2D5' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ fontSize: 18 }}>{pkg.icon}</span>
                     {pkg.label}
@@ -100,12 +116,13 @@ export default function MenuTabs({ menuRows, dateRange }: MenuTabsProps) {
                       </div>
                     )}
                   </td>
-                  {PACKAGES.map(pkg => {
+                  {PACKAGES.filter(p => p.mealType === activeTab).map(pkg => {
                     const rowData = menuRows.find(r => r.menu_type === pkg.menuType && r.meal_type === pkg.mealType && r.day_of_week === day);
                     const items = rowData?.items?.length ? rowData.items : fallback;
                     const isVegOverride = rowData?.is_veg_override;
+                    const visiblePkgs = PACKAGES.filter(p => p.mealType === activeTab);
                     return (
-                      <td key={pkg.id} style={{ padding: '24px 16px', verticalAlign: 'top', borderRight: pkg.id !== PACKAGES[PACKAGES.length-1].id ? '1px dashed #F0F0F0' : 'none' }}>
+                      <td key={pkg.id} style={{ padding: '24px 16px', verticalAlign: 'top', borderRight: pkg.id !== visiblePkgs[visiblePkgs.length-1].id ? '1px dashed #F0F0F0' : 'none' }}>
                         <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
                           {items.map((item, i) => (
                             <li key={i} style={{ fontSize: 14, color: '#4A5568', lineHeight: 1.5, display: 'flex', gap: 8 }}>

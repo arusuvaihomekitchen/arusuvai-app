@@ -32,6 +32,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       updates.push(`is_active = $${idx++}`);
       values.push(body.is_active);
     }
+    if (body.available_until !== undefined) {
+      updates.push(`available_until = $${idx++}`);
+      values.push(body.available_until || null);
+    }
 
     if (updates.length > 0) {
       values.push(id);

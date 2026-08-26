@@ -41,6 +41,7 @@ export interface TodaySpecial {
   description: string;
   price: number;
   is_active: boolean;
+  available_until: string | null;
   created_at: string;
 }
 
