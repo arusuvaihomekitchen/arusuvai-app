@@ -129,8 +129,13 @@ export default function AdminTodayPage() {
   }
 
   const [listFilter, setListFilter] = useState<'all' | 'unassigned' | 'assigned' | 'delivered' | 'pending_skips'>('all');
+  const [filterPerson, setFilterPerson] = useState<string>('all');
 
-  const filtered = deliveries.filter((d) => d.meal_type === mealTab);
+  const baseFiltered = deliveries.filter((d) => d.meal_type === mealTab);
+  const filtered = filterPerson === 'all' 
+    ? baseFiltered 
+    : baseFiltered.filter(d => d.delivery_person_id === filterPerson);
+
   const toDeliver = filtered.filter((d) => ['pending', 'assigned'].includes(d.status));
   const completedRows = filtered.filter((d) => ['delivered', 'not_available', 'skipped'].includes(d.status));
   const pendingSkips = filtered.filter((d) => d.skip_req_id && d.skip_status === 'pending').length;
@@ -230,6 +235,21 @@ export default function AdminTodayPage() {
               { id: 'assigned', name: `Assigned (${assignedDeliveries.length})` },
               { id: 'delivered', name: `Delivered (${completedRows.filter((d) => d.status === 'delivered').length})` },
               ...(pendingSkips > 0 ? [{ id: 'pending_skips', name: `Pending Skips (${pendingSkips})` }] : [])
+            ]}
+          />
+        </div>
+
+        <div style={{ width: 220, flexShrink: 0, zIndex: 9 }}>
+          <CustomDropdown 
+            label="Delivery Person"
+            value={filterPerson}
+            onChange={setFilterPerson}
+            options={[
+              { id: 'all', name: `All Persons (${baseFiltered.length})` },
+              ...deliveryPersons.map(dp => {
+                const count = baseFiltered.filter(d => d.delivery_person_id === dp.id).length;
+                return { id: dp.id, name: `${dp.name} (${count})` };
+              })
             ]}
           />
         </div>
