@@ -128,7 +128,7 @@ export default function AdminTodayPage() {
     loadDeliveries(true);
   }
 
-  const [listFilter, setListFilter] = useState<'all' | 'unassigned' | 'assigned' | 'delivered' | 'pending_skips'>('all');
+  const [listFilter, setListFilter] = useState<'all' | 'unassigned' | 'assigned' | 'delivered' | 'skipped' | 'pending_skips'>('all');
   const [filterPerson, setFilterPerson] = useState<string>('all');
 
   const baseFiltered = deliveries.filter((d) => d.meal_type === mealTab);
@@ -138,6 +138,11 @@ export default function AdminTodayPage() {
 
   const toDeliver = filtered.filter((d) => ['pending', 'assigned'].includes(d.status));
   const completedRows = filtered.filter((d) => ['delivered', 'not_available', 'skipped'].includes(d.status));
+  
+  let displayCompletedRows = completedRows;
+  if (listFilter === 'delivered') displayCompletedRows = completedRows.filter(d => d.status === 'delivered');
+  if (listFilter === 'skipped') displayCompletedRows = completedRows.filter(d => d.status === 'skipped');
+
   const pendingSkips = filtered.filter((d) => d.skip_req_id && d.skip_status === 'pending').length;
 
   const pendingDeliveries = filtered.filter((d) => d.status === 'pending');
@@ -234,6 +239,7 @@ export default function AdminTodayPage() {
               { id: 'unassigned', name: `Unassigned (${pendingDeliveries.length})` },
               { id: 'assigned', name: `Assigned (${assignedDeliveries.length})` },
               { id: 'delivered', name: `Delivered (${completedRows.filter((d) => d.status === 'delivered').length})` },
+              { id: 'skipped', name: `Skipped (${completedRows.filter((d) => d.status === 'skipped').length})` },
               ...(pendingSkips > 0 ? [{ id: 'pending_skips', name: `Pending Skips (${pendingSkips})` }] : [])
             ]}
           />
@@ -245,9 +251,9 @@ export default function AdminTodayPage() {
             value={filterPerson}
             onChange={setFilterPerson}
             options={[
-              { id: 'all', name: `All Persons (${baseFiltered.length})` },
+              { id: 'all', name: `Total (${baseFiltered.length}) - Assigned (${baseFiltered.filter(d => ['assigned', 'delivered'].includes(d.status)).length})` },
               ...deliveryPersons.map(dp => {
-                const count = baseFiltered.filter(d => d.delivery_person_id === dp.id).length;
+                const count = baseFiltered.filter(d => d.delivery_person_id === dp.id && ['assigned', 'delivered'].includes(d.status)).length;
                 return { id: dp.id, name: `${dp.name} (${count})` };
               })
             ]}
@@ -367,10 +373,12 @@ export default function AdminTodayPage() {
           )}
 
           {/* Completed */}
-          {(listFilter === 'all' || listFilter === 'delivered') && completedRows.length > 0 && (
+          {['all', 'delivered', 'skipped'].includes(listFilter) && displayCompletedRows.length > 0 && (
             <div>
-              <h3 style={{ ...sectionHeader, color: 'var(--color-primary)' }}>✅ Completed — {completedRows.length}</h3>
-              {completedRows.map((d) => (
+              <h3 style={{ ...sectionHeader, color: 'var(--color-primary)' }}>
+                {listFilter === 'skipped' ? '⏭️ Skipped' : '✅ Completed'} — {displayCompletedRows.length}
+              </h3>
+              {displayCompletedRows.map((d) => (
                 <CompletedRow key={d.id} delivery={d} onRestore={() => restoreDelivery(d)} />
               ))}
             </div>

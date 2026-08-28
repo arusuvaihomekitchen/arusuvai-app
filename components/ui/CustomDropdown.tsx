@@ -80,23 +80,40 @@ export default function CustomDropdown({ options, value, onChange, label }: Cust
       </button>
 
       {isOpen && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            right: 0,
-            marginTop: 6,
-            background: 'white',
-            border: '1.5px solid var(--color-border)',
-            borderRadius: 14,
-            boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-            zIndex: 1000,
-            maxHeight: 200,
-            overflowY: 'auto',
-            animation: 'fadeIn 0.15s ease',
-          }}
-        >
+        <>
+          <style>{`
+            .custom-scrollbar::-webkit-scrollbar {
+              width: 6px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-track {
+              background: transparent;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+              background-color: #cbd5e1;
+              border-radius: 10px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+              background-color: #94a3b8;
+            }
+          `}</style>
+          <div
+            className="custom-scrollbar"
+            style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              right: 0,
+              marginTop: 6,
+              background: 'white',
+              border: '1.5px solid var(--color-border)',
+              borderRadius: 14,
+              boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+              zIndex: 1000,
+              maxHeight: 200,
+              overflowY: 'auto',
+              animation: 'fadeIn 0.15s ease',
+            }}
+          >
           {options.map((opt) => {
             const isSelected = opt.id === value;
             return (
@@ -129,6 +146,7 @@ export default function CustomDropdown({ options, value, onChange, label }: Cust
             );
           })}
         </div>
+        </>
       )}
     </div>
   );
