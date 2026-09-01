@@ -19,15 +19,17 @@ export async function GET(req: NextRequest) {
     try {
       await db.query('BEGIN');
 
-      // Get all active clients whose subscription started on or before this date
+      // Get all active clients with their LATEST subscription starting on or before this date
       const clients = await db.query(
         `SELECT u.id, u.name, s.end_date, s.start_date, s.subscribe_breakfast, s.subscribe_lunch, s.subscribe_dinner
          FROM users u
-         JOIN subscriptions s ON s.client_id = u.id
+         JOIN LATERAL (
+           SELECT * FROM subscriptions
+           WHERE client_id = u.id AND start_date <= $1 AND status = 'active'
+           ORDER BY created_at DESC LIMIT 1
+         ) s ON true
          WHERE u.role = 'client'
-           AND u.is_active = true
-           AND s.start_date <= $1
-           AND s.status = 'active'`,
+           AND u.is_active = true`,
         [date]
       );
 
@@ -35,9 +37,14 @@ export async function GET(req: NextRequest) {
       const skipCounts = await db.query(
         `SELECT sr.client_id, sr.meal_type, COUNT(*) as skips
          FROM skip_requests sr
-         JOIN subscriptions s ON s.client_id = sr.client_id
+         JOIN LATERAL (
+           SELECT start_date FROM subscriptions
+           WHERE client_id = sr.client_id AND start_date <= $1 AND status = 'active'
+           ORDER BY created_at DESC LIMIT 1
+         ) s ON true
          WHERE sr.status = 'approved' AND sr.date >= s.start_date
-         GROUP BY sr.client_id, sr.meal_type`
+         GROUP BY sr.client_id, sr.meal_type`,
+        [date]
       );
 
       const skipsMap = new Map<string, number>();
