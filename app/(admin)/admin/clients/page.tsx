@@ -50,12 +50,14 @@ export default function AdminClientsPage() {
   const [packages, setPackages] = useState<any[]>([]);
   const [selectedPkgId, setSelectedPkgId] = useState<string>('custom');
 
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  useEffect(() => {
     if (typeof window !== 'undefined') {
-      return (localStorage.getItem('clients_view_mode') as 'grid' | 'list') || 'grid';
+      const saved = localStorage.getItem('clients_view_mode') as 'grid' | 'list';
+      if (saved) setViewMode(saved);
     }
-    return 'grid';
-  });
+  }, []);
 
   const handleSetViewMode = (mode: 'grid' | 'list') => {
     setViewMode(mode);
@@ -127,6 +129,19 @@ export default function AdminClientsPage() {
     }, { bypassCache });
     return unsub;
   };
+
+  async function togglePayment(paymentId: string, currentStatus: string) {
+    if (!paymentId) return;
+    const newStatus = currentStatus === 'paid' ? 'unpaid' : 'paid';
+    const res = await fetch(`/api/admin/payments/${paymentId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus }),
+    });
+    if (res.ok) {
+      setClients((prev) => prev.map((c: any) => c.payment_id === paymentId ? { ...c, payment_status: newStatus } : c));
+    }
+  }
 
   useEffect(() => {
     const unsub = loadClients();
@@ -598,6 +613,7 @@ export default function AdminClientsPage() {
                   <th style={thStyle}>Location</th>
                   <th style={thStyle}>Pincode</th>
                   <th style={thStyle}>Plan & Meals</th>
+                  <th style={thStyle}>Payment</th>
                   <th style={thStyle}>Status</th>
                   <th style={thStyle}>Validity</th>
                   <th style={{ ...thStyle, textAlign: 'right' }}>Actions</th>
@@ -643,6 +659,30 @@ export default function AdminClientsPage() {
                           {c.sub_amount ? `₹${Number(c.sub_amount).toLocaleString('en-IN')}` : '—'}
                         </div>
                         <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 2 }}>{meals}</div>
+                      </td>
+                      <td style={tdStyle}>
+                        {c.payment_id ? (
+                          <button
+                            onClick={() => togglePayment(c.payment_id, c.payment_status)}
+                            style={{
+                              padding: '4px 8px',
+                              borderRadius: 6,
+                              fontSize: 11,
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              border: 'none',
+                              background: c.payment_status === 'paid' ? '#DCFCE7' : '#FEE2E2',
+                              color: c.payment_status === 'paid' ? '#166534' : '#991B1B',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 4,
+                            }}
+                          >
+                            {c.payment_status === 'paid' ? 'Paid ✓' : 'Unpaid ✕'}
+                          </button>
+                        ) : (
+                          <span style={{ fontSize: 11, color: 'var(--color-text-light)' }}>—</span>
+                        )}
                       </td>
                       <td style={tdStyle}>
                         <Badge variant={status === 'active' ? 'active' : status === 'not_started' ? 'not_started' : 'expired'}>

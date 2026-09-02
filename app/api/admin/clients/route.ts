@@ -19,6 +19,7 @@ export async function GET() {
          s.subscribe_lunch,
          s.subscribe_dinner,
          s.subscribe_breakfast,
+         p.payment_id,
          p.status as payment_status,
          skips.breakfast_skips,
          skips.lunch_skips,
@@ -30,10 +31,10 @@ export async function GET() {
          ORDER BY created_at DESC LIMIT 1
        ) s ON true
        LEFT JOIN LATERAL (
-         SELECT status FROM payments
-         WHERE client_id = u.id
-           AND year = EXTRACT(YEAR FROM NOW())
-           AND month = EXTRACT(MONTH FROM NOW())
+         SELECT id as payment_id, status FROM payments
+         WHERE client_id = u.id 
+           AND year = EXTRACT(YEAR FROM s.start_date)
+           AND month = EXTRACT(MONTH FROM s.start_date)
          LIMIT 1
        ) p ON true
        LEFT JOIN LATERAL (

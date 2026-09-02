@@ -13,15 +13,15 @@ export async function POST(
     if (!session) return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 });
 
     const { id: clientId } = await params;
-    const { type, amount, start_date, end_date, notes } = await req.json();
+    const { type, amount, start_date, end_date, notes, subscribe_breakfast, subscribe_lunch, subscribe_dinner } = await req.json();
 
     const subId = `sub_${randomUUID().replace(/-/g, '').slice(0, 10)}`;
 
     const result = await pool.query(
-      `INSERT INTO subscriptions (id, client_id, type, amount, start_date, end_date, status, notes, created_by)
-       VALUES ($1, $2, $3, $4, $5, $6, 'active', $7, $8)
+      `INSERT INTO subscriptions (id, client_id, type, amount, start_date, end_date, status, notes, created_by, subscribe_breakfast, subscribe_lunch, subscribe_dinner)
+       VALUES ($1, $2, $3, $4, $5, $6, 'active', $7, $8, $9, $10, $11)
        RETURNING *`,
-      [subId, clientId, type ?? 'Monthly', amount, start_date, end_date, notes ?? '', session.id]
+      [subId, clientId, type ?? 'Monthly', amount, start_date, end_date, notes ?? '', session.id, subscribe_breakfast ?? false, subscribe_lunch ?? false, subscribe_dinner ?? false]
     );
 
     // Create payment for the starting month

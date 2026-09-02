@@ -152,7 +152,7 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
   // Action Triggers
   function triggerRenew() {
     if (!data?.client) return;
-    setRenewForm({ amount: '', start_date: todayStr, end_date: '' });
+    setRenewForm({ amount: '', start_date: todayStr, end_date: '', subscribe_breakfast: false, subscribe_lunch: true, subscribe_dinner: false });
     setSelectedRenewPkgId('custom');
     setShowRenewModal(true);
   }
@@ -195,13 +195,16 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
   }
 
   // Handle Package Selection inside Renew
-  function handleSelectRenewPackage(pkg: { id: string; name: string; days: number; price: number | string }) {
+  function handleSelectRenewPackage(pkg: { id: string; name: string; days: number; price: number | string; meal_type?: string[] }) {
     setSelectedRenewPkgId(pkg.id);
     if (pkg.id === 'custom') {
-      setRenewForm((f) => ({ ...f, amount: '' }));
+      setRenewForm((f) => ({ ...f, amount: '', subscribe_breakfast: false, subscribe_lunch: true, subscribe_dinner: false }));
     } else {
+      const b = pkg.meal_type?.includes('Breakfast') ?? false;
+      const l = pkg.meal_type?.includes('Lunch') ?? false;
+      const d = pkg.meal_type?.includes('Dinner') ?? false;
       setRenewForm((f) => {
-        const next = { ...f, amount: String(pkg.price) };
+        const next = { ...f, amount: String(pkg.price), subscribe_breakfast: b, subscribe_lunch: l, subscribe_dinner: d };
         if (f.start_date) {
           next.end_date = calculateEndDate(f.start_date, pkg.days);
         }
@@ -632,6 +635,36 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
             />
           </div>
         </div>
+        
+        {/* Checkboxes */}
+        {selectedRenewPkgId === 'custom' && (
+          <div style={{ display: 'flex', gap: 16, marginTop: 12, marginBottom: 12, flexWrap: 'wrap' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={renewForm.subscribe_breakfast}
+                onChange={(e) => setRenewForm((f) => ({ ...f, subscribe_breakfast: e.target.checked }))}
+              />
+              Breakfast 🍳
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={renewForm.subscribe_lunch}
+                onChange={(e) => setRenewForm((f) => ({ ...f, subscribe_lunch: e.target.checked }))}
+              />
+              Lunch 🍛
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={renewForm.subscribe_dinner}
+                onChange={(e) => setRenewForm((f) => ({ ...f, subscribe_dinner: e.target.checked }))}
+              />
+              Dinner 🌙
+            </label>
+          </div>
+        )}
         {renewForm.start_date && renewForm.end_date && (
           <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-primary)', marginBottom: 12 }}>
             {countServiceDays(new Date(renewForm.start_date), new Date(renewForm.end_date))} service days
