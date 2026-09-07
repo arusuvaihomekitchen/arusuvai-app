@@ -452,8 +452,9 @@ export default function AdminClientsPage() {
             )}
 
             {/* Checkboxes for meal subscription */}
-            <div style={{ display: 'flex', gap: 16, marginTop: 12, flexWrap: 'wrap' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer' }}>
+            {selectedPkgId === 'custom' && (
+              <div style={{ display: 'flex', gap: 16, marginTop: 12, flexWrap: 'wrap' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
                   checked={form.subscribe_breakfast}
@@ -478,6 +479,7 @@ export default function AdminClientsPage() {
                 Subscribe Dinner 🌙
               </label>
             </div>
+            )}
           </div>
 
           <div className="mobile-sticky-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 14 }}>
