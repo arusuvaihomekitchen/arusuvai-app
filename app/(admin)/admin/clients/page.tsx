@@ -29,6 +29,7 @@ interface ClientRow {
   username: string; delivery_note: string; is_active: boolean;
   sub_id?: string; sub_amount?: number; start_date?: string;
   end_date?: string; sub_status?: string; sub_type?: string;
+  payment_id?: string;
   payment_status?: string;
   subscribe_lunch?: boolean;
   subscribe_dinner?: boolean;
@@ -665,7 +666,7 @@ export default function AdminClientsPage() {
                       <td style={tdStyle}>
                         {c.payment_id ? (
                           <button
-                            onClick={() => togglePayment(c.payment_id, c.payment_status)}
+                            onClick={() => togglePayment(c.payment_id!, c.payment_status!)}
                             style={{
                               padding: '4px 8px',
                               borderRadius: 6,

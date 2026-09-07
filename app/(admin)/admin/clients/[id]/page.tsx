@@ -53,6 +53,7 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
   // Form states
   const [renewForm, setRenewForm] = useState({
     amount: '', start_date: '', end_date: '',
+    subscribe_breakfast: false, subscribe_lunch: true, subscribe_dinner: false,
   });
 
   const [editForm, setEditForm] = useState({
@@ -195,7 +196,7 @@ export default function ClientDetailPage({ params }: ClientDetailProps) {
   }
 
   // Handle Package Selection inside Renew
-  function handleSelectRenewPackage(pkg: { id: string; name: string; days: number; price: number | string; meal_type?: string[] }) {
+  function handleSelectRenewPackage(pkg: { id: string; name: string; days: number; price: number | string; meal_type?: string }) {
     setSelectedRenewPkgId(pkg.id);
     if (pkg.id === 'custom') {
       setRenewForm((f) => ({ ...f, amount: '', subscribe_breakfast: false, subscribe_lunch: true, subscribe_dinner: false }));
